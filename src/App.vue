@@ -101,7 +101,7 @@ const clearContext = () => {
 
 
 const lock = () => {
-  ipcRenderer.send("render2main", "reloadWindow")
+    ipcRenderer.send("render2main", "reloadWindow");
 }
 
 

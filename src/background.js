@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain} from 'electron'
+import { app, protocol, BrowserWindow, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -10,8 +10,9 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
 
-let win=null
-async function createWindow(transparent=false,x=0,y=0,w=500,h=900) {
+let win = null
+let isLock = false
+async function createWindow(transparent = isLock, x = 0, y = 0, w = 500, h = 900) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
@@ -23,7 +24,7 @@ async function createWindow(transparent=false,x=0,y=0,w=500,h=900) {
     hasShadow: false,
     alwaysOnTop: true,
     webPreferences: {
-      
+
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
       // nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
@@ -95,9 +96,19 @@ if (isDevelopment) {
 }
 
 
-ipcMain.on('render2main',(event,param1)=>{
+ipcMain.on('render2main', (event, param1) => {
   console.log(param1)
-  const bounds = win.getBounds();
-  win.close()
-  createWindow(true,bounds.x,bounds.y,bounds.width,bounds.height)
+  if (param1 === 'reloadWindow') {
+    if (!isLock) {
+      const bounds = win.getBounds();
+      win.close()
+      createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height)
+      isLock = true
+    } else {
+      const bounds = win.getBounds();
+      win.close()
+      createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height)
+      isLock = false
+    }
+  }
 })
