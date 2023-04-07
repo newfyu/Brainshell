@@ -49,8 +49,6 @@ const scrollEnd = () => {
 
 // 如果要在任意位置识别# 可能要加键盘响应才行
 const handleInput = (event) => {
-
-
   const input = inputRef.value.textarea;
   const rect = input.getBoundingClientRect(); // 获得绝对坐标
   const text = event
@@ -70,9 +68,7 @@ const handleInput = (event) => {
     showList.value = false;
   }
 
-  const footHeight = parseInt(inputRef.value.textarea.style.height)
-  bodyHeight.value = `${parseInt(defaultBodyHeight) + 31 - footHeight}px`
-  console.log(bodyHeight.value)
+  
 }
 
 const handleChange = () => {
@@ -85,7 +81,6 @@ const selectItem = (item) => {
 }
 
 const clearContext = () => {
-
   axios.post('http://127.0.0.1:7860/run/clear_context', {
     data: []
   }).then(() => {
@@ -104,6 +99,17 @@ const lock = () => {
     ipcRenderer.send("render2main", "reloadWindow");
 }
 
+const handleKeyDown = (event) => {
+  console.log(event)
+  if (event.shiftKey && event.keyCode === 13){
+    sendRequests();
+  }
+  setTimeout(()=>{
+    const footHeight = parseInt(inputRef.value.textarea.style.height)
+    bodyHeight.value = `${parseInt(defaultBodyHeight) + 31 - footHeight}px`
+  },100)
+
+  }
 
 onMounted(() => {
   scrollEnd()
@@ -208,9 +214,9 @@ onMounted(() => {
       </ul>
     </div>
     <!-- <textarea v-model="inputText" @input="handleInput" ref="inputRef"></textarea> -->
-    <el-input v-model.lazy="inputText" @input="handleInput" @keydown.shift.enter.prevent="sendRequests"
+    <el-input v-model.lazy="inputText" @input="handleInput" @keydown="handleKeyDown"
       @change="handleChange" type="textarea" ref="inputRef" clearable="true" maxlength="1000" show-word-limit="true"
-      placeholder="请输入内容" resize="none" :autosize="{ minRows: 1, maxRows: 3 }">
+      placeholder="请输入内容" resize="none" :autosize="{ minRows: 1, maxRows: 5 }">
     </el-input>
     <el-row class="toolbar">
       <el-button :icon="Refresh" text="true" bg="true" circle @click="clearContext" />
