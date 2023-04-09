@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
@@ -24,6 +24,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     transparent: transparent,
     hasShadow: false,
     alwaysOnTop: true,
+    // level: 'floating',
     webPreferences: {
 
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -141,7 +142,15 @@ ipcMain.on('render2main', (event, param1) => {
 //   Menu.setApplicationMenu(menu)
 // });
 
-ipcMain.on('set-ignore-mouse-events', (event, ...args) => {
-  const win = BrowserWindow.fromWebContents(event.sender)
-  win.setIgnoreMouseEvents(...args)
-})
+
+//外部打开链接
+app.on('web-contents-created', (e, webContents) => {
+  webContents.setWindowOpenHandler(({ url, frameName }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  webContents.on('will-navigate', (event, url) => {
+    event.preventDefault();
+    shell.openExternal(url);
+  });
+});
