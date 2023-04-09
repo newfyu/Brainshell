@@ -1,7 +1,8 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, Menu } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
+
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -31,7 +32,8 @@ async function createWindow(transparent = isLock, x = 0, y = 0, w = 500, h = 900
       nodeIntegration: true,
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       enableRemoteModule: true,
-      webSecurity: false
+      webSecurity: false,
+      zoomFactor:1.0
     }
   })
 
@@ -78,6 +80,7 @@ app.on('ready', async () => {
   //   devtools.connect(/* host, port */)
   // }
   createWindow()
+  
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -104,11 +107,33 @@ ipcMain.on('render2main', (event, param1) => {
       win.close()
       createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height)
       isLock = true
+      win.setResizable(false)
     } else {
       const bounds = win.getBounds();
       win.close()
       createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height)
       isLock = false
+      win.setResizable(true)
     }
   }
 })
+
+// app.whenReady().then(() => {
+//   // 获取视图菜单
+//   const template = [
+//     {
+//       label: 'View',
+//       submenu: [],
+//       enabled: false // 设置为false禁用菜单
+//     },
+//     {label: 'Window',
+//       role: 'window',
+//       submenu: [
+//         { label: 'Minimize', role: 'minimize' },
+//         { label: 'Close', role: 'close' }
+//       ]}
+//   ]
+
+//   const menu = Menu.buildFromTemplate(template)
+//   Menu.setApplicationMenu(menu)
+// });
