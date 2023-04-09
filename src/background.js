@@ -13,7 +13,7 @@ protocol.registerSchemesAsPrivileged([
 
 let win = null
 let isLock = false
-async function createWindow(transparent = isLock, x = 0, y = 0, w = 500, h = 900) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
@@ -118,22 +118,23 @@ ipcMain.on('render2main', (event, param1) => {
   }
 })
 
-// app.whenReady().then(() => {
-//   // 获取视图菜单
-//   const template = [
-//     {
-//       label: 'View',
-//       submenu: [],
-//       enabled: false // 设置为false禁用菜单
-//     },
-//     {label: 'Window',
-//       role: 'window',
-//       submenu: [
-//         { label: 'Minimize', role: 'minimize' },
-//         { label: 'Close', role: 'close' }
-//       ]}
-//   ]
+// 禁用菜单
+app.whenReady().then(() => {
+  // 获取视图菜单
+  const template = [
+    {
+      label: 'View',
+      submenu: [],
+      enabled: false // 设置为false禁用菜单
+    },
+    {label: 'Window',
+      role: 'window',
+      submenu: [
+        { label: 'Minimize', role: 'minimize' },
+        { label: 'Close', role: 'close' }
+      ]}
+  ]
 
-//   const menu = Menu.buildFromTemplate(template)
-//   Menu.setApplicationMenu(menu)
-// });
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+});

@@ -2,21 +2,13 @@
 import axios from 'axios';
 import { ref, onMounted} from 'vue';
 import { Delete, Refresh, VideoPause, Lock} from '@element-plus/icons-vue'
-import { ipcRenderer, remote, webFrame } from "electron"
+import { ipcRenderer, remote} from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
 
 
 
-
-
-
-webFrame.setZoomFactor(1.1)
-
-
-// let test_a = '好的,这里是一个简单的Python类,它只有一个属性和一个方法来设置和打印该属性值:\n\n```python\nclass Person:\n    def __init__(self, name):\n        self.name = name\n    \n    def say_hello(self):\n        print(f"Hello, my name is {self.name}")\n```\n\n在这个例子中,我们定义了一个`Person`类,它具有一个`__init__`方法来设置`name`属性,以及一个`say_hello`方法来打印出该属性的值。\n\n我们可以使用以下代码创建一个`Person`对象,并使用`say_hello`方法打印出其名称:\n\n```python\nperson = Person("Alice")\nperson.say_hello()\n```\n\n这将产生以下输出:\n\n```\nHello, my name is Alice\n```\n\n'
-// let test_q = '写一个vue的<script setup>示例，沙发上地方暗示法发啥呆发啥发水电费安抚沙发舒服asdf阿四饭店啥'
 const md = Markdown({
   highlight: (str, lang) => {
     const code = lang && hljs.getLanguage(lang)
@@ -28,11 +20,17 @@ const md = Markdown({
     return `<pre class="hljs"><code>${code}</code></pre>`;
   },
 });
-// test_a = md.render(test_a);
-// test_q = md.render(test_q);
-// let QAcontext = ref([[test_q, test_a],[test_q, test_a]]);
 
-let QAcontext = ref([]);
+
+let test_q = '写一个vue的<script setup>示例，沙发上地方暗示法发啥呆发啥发水电费安抚沙发舒服asdf阿四饭店啥'
+let test_a = '好的,这里是一个简单的Python类,它只有一个属性和一个方法来设置和打印该属性值:\n\n```python\nclass Person:\n    def __init__(self, name):\n        self.name = name\n    \n    def say_hello(self):\n        print(f"Hello, my name is {self.name}")\n```\n\n在这个例子中,我们定义了一个`Person`类,它具有一个`__init__`方法来设置`name`属性,以及一个`say_hello`方法来打印出该属性的值。\n\n我们可以使用以下代码创建一个`Person`对象,并使用`say_hello`方法打印出其名称:\n\n```python\nperson = Person("Alice")\nperson.say_hello()\n```\n\n这将产生以下输出:\n\n```\nHello, my name is Alice\n```\n\n'
+
+
+test_a = md.render(test_a);
+// test_q = md.render(test_q);
+let QAcontext = ref([[test_q, test_a],[test_q, test_a]]);
+
+// let QAcontext = ref([]);
 let scrollbarRef = ref(null);
 let itemList = ref(['Item 1', 'Item 2', 'Item 3'])
 let caretPosition = ref({ left: 0, top: 0 })
@@ -40,9 +38,18 @@ let inputText = ref('')
 let inputRef = ref(null)
 let showList = ref(false)
 let currentWindow = remote.getCurrentWindow();
-let defaultBodyHeight = currentWindow.getSize()[1] - 250
+let defaultBodyHeight = currentWindow.getSize()[1] - 280
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
+
+
+currentWindow.on('resize', () => {
+  bodyHeight.value = `${currentWindow.getSize()[1] - 280}px`
+  defaultBodyHeight = currentWindow.getSize()[1] - 280
+})
+
+
+
 const sendRequests = () => {
   // 发送总请求
   let question = inputText.value
@@ -73,6 +80,7 @@ const sendRequests = () => {
 const scrollEnd = () => {
   scrollbarRef.value.setScrollTop(9999) //滚动到底部
 }
+
 
 // const preFormat = (text) => {
 //   text = text.replace("<", "&lt;"); 
@@ -111,7 +119,7 @@ const handleInput = (event) => {
 
   setTimeout(() => {
     const textareaHeight = parseInt(inputRef.value.textarea.style.height)
-    bodyHeight.value = `${parseInt(defaultBodyHeight) + 31 - textareaHeight}px`
+    bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
   }, 100)
 
 
@@ -144,13 +152,6 @@ const lock = () => {
 
 
 onMounted(() => {
-  currentWindow.on('resize', () => {
-  bodyHeight.value = `${currentWindow.getSize()[1] - 250}px`
-  defaultBodyHeight = currentWindow.getSize()[1] - 250
-  const textareaHeight = parseInt(inputRef.value.textarea.style.height)
-  bodyHeight.value = `${parseInt(defaultBodyHeight) + 31 - textareaHeight}px`
-})
-
   scrollEnd()
 })
 
@@ -163,24 +164,23 @@ onMounted(() => {
 
 
 <style>
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-  /* background-color: bisque; */
-  margin: 10px;
-}
 
+.QAs {
+  /* height: 650px; */
+  margin: 15px;
+
+}
 .Q {
   /* display: inline-block; */
   text-align: left;
   vertical-align: middle;
   background-color: gray;
-  padding: 15px;
   color: white;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
   padding-top: 1px;
   padding-bottom: 1px;
+  margin-top: 20px;
 }
 
 .A {
@@ -189,20 +189,19 @@ onMounted(() => {
   vertical-align: middle;
   background-color: CornflowerBlue;
   color: white;
-  margin-top: 10px;
+  margin-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   padding-left: 20px;
   padding-right: 20px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  font-size: small;
 }
 
 .QA {
   text-align: right;
 }
 
-.QAs {
-  height: 650px;
-}
+
 
 .mTagList {
   position: absolute;
@@ -234,6 +233,9 @@ pre {
   white-space: -o-pre-wrap;
   word-wrap: break-word;
 }
+.preQ{
+  font-size: medium;
+}
 
 </style>
 
@@ -242,10 +244,10 @@ pre {
   <el-row justify="center" align="bottom" class="QAs" ref="chatWindow" :style="{ height:bodyHeight }">
     <el-col :span="24" gutter="10">
       <el-scrollbar ref="scrollbarRef" :max-height="bodyHeight">
-        <div class="grid-content ep-bg-purple-dark QA" v-for="(round, index) in QAcontext" :key="index">
+        <div class="grid-content QA" v-for="(round, index) in QAcontext" :key="index">
           <div>
             <!-- <div class="Q" v-html="round[0]"></div> -->
-            <div class="Q"><pre>{{ round[0] }}</pre></div>
+            <div class="Q"><pre class="preQ">{{ round[0] }}</pre></div>
           </div>
           <div>
             <div class="A" v-html="round[1]"></div>
@@ -253,10 +255,8 @@ pre {
         </div>
       </el-scrollbar>
     </el-col>
-
-  </el-row>   
+  </el-row> 
   <el-footer>
-    <br>
     <div id="magicInput">
       <div ref="list" class="mTagList" :style="caretPosition" v-show="showList">
         <ul>
