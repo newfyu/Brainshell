@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted} from 'vue';
-import { Delete, Refresh, VideoPause, Lock} from '@element-plus/icons-vue'
+import { Delete, Refresh, VideoPause, Lock, Pointer} from '@element-plus/icons-vue'
 import { ipcRenderer, remote} from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -41,6 +41,7 @@ let currentWindow = remote.getCurrentWindow();
 let defaultBodyHeight = currentWindow.getSize()[1] - 280
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
+const dragHandle = ref(null);
 
 
 currentWindow.on('resize', () => {
@@ -151,7 +152,20 @@ const lock = () => {
 }
 
 
+
 onMounted(() => {
+  //   let win = remote.getCurrentWindow();
+  //   window.addEventListener('mousemove', (event) => {
+  //   let flag= event.target === document.documentElement;
+  //   if (flag) {
+  //     win.setIgnoreMouseEvents(true, {forward: true});
+  //   }
+  //   else {
+  //     win.setIgnoreMouseEvents(false);
+  //   }
+  // win.setIgnoreMouseEvents(true,{forward: true});
+  // })
+  dragHandle.value = document.getElementById('drag-handle');
   scrollEnd()
 })
 
@@ -171,7 +185,6 @@ onMounted(() => {
 
 }
 .Q {
-  /* display: inline-block; */
   text-align: left;
   vertical-align: middle;
   background-color: gray;
@@ -184,7 +197,6 @@ onMounted(() => {
 }
 
 .A {
-  /* display: inline-block; */
   text-align: left;
   vertical-align: middle;
   background-color: CornflowerBlue;
@@ -236,6 +248,13 @@ pre {
 .preQ{
   font-size: medium;
 }
+#textArea {
+  border-radius: 0%;
+  /* border:1px solid gray; */
+}
+#drag-handle{
+  -webkit-app-region: drag;
+}
 
 </style>
 
@@ -266,7 +285,7 @@ pre {
         </ul>
       </div>
       <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
-      <el-input v-model.lazy="inputText" @input="handleInput" @keydown.enter.exact.prevent="sendRequests"
+      <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" @keydown.enter.exact.prevent="sendRequests"
         type="textarea" ref="inputRef" clearable="true" maxlength="1000" show-word-limit="true"
         placeholder="请输入内容" resize="none" :autosize="{ minRows: 2, maxRows: 5 }">
       </el-input>
@@ -275,6 +294,7 @@ pre {
         <el-button class="toolButton" :icon="Delete" text="true" bg="true" circle/>
         <el-button class="toolButton" :icon="VideoPause" text="true" bg="true" circle />
         <el-button class="toolButton" :icon="Lock" text="true" bg="true" circle @click="lock" />
+        <el-button id="drag-handle" :icon="Pointer" text="true" bg="true" circle />
       </el-row>
     </div>
   </el-footer>

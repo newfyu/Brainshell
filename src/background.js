@@ -13,14 +13,14 @@ protocol.registerSchemesAsPrivileged([
 
 let win = null
 let isLock = false
-async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900, frame=true) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
     y: y,
     width: w,
     height: h,
-    frame: true,
+    frame: frame,
     transparent: transparent,
     hasShadow: false,
     alwaysOnTop: true,
@@ -46,6 +46,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
+
 }
 
 // Quit when all windows are closed.
@@ -80,7 +81,6 @@ app.on('ready', async () => {
   //   devtools.connect(/* host, port */)
   // }
   createWindow()
-  
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -105,13 +105,13 @@ ipcMain.on('render2main', (event, param1) => {
     if (!isLock) {
       const bounds = win.getBounds();
       win.close()
-      createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height)
+      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false)
       isLock = true
       win.setResizable(false)
     } else {
       const bounds = win.getBounds();
       win.close()
-      createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height)
+      createWindow(false, bounds.x, bounds.y - 28, bounds.width, bounds.height, true)
       isLock = false
       win.setResizable(true)
     }
@@ -119,22 +119,29 @@ ipcMain.on('render2main', (event, param1) => {
 })
 
 // 禁用菜单
-app.whenReady().then(() => {
-  // 获取视图菜单
-  const template = [
-    {
-      label: 'View',
-      submenu: [],
-      enabled: false // 设置为false禁用菜单
-    },
-    {label: 'Window',
-      role: 'window',
-      submenu: [
-        { label: 'Minimize', role: 'minimize' },
-        { label: 'Close', role: 'close' }
-      ]}
-  ]
+// app.whenReady().then(() => {
+//   // 获取视图菜单
+//   const template = [
+//     {
+//       label: 'View',
+//       submenu: [
 
-  const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu)
-});
+//       ],
+//       enabled: false // 设置为false禁用菜单
+//     },
+//     {label: 'Window',
+//       role: 'window',
+//       submenu: [
+//         { label: 'Minimize', role: 'minimize' },
+//         { label: 'Close', role: 'close' }
+//       ]}
+//   ]
+
+//   const menu = Menu.buildFromTemplate(template)
+//   Menu.setApplicationMenu(menu)
+// });
+
+ipcMain.on('set-ignore-mouse-events', (event, ...args) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  win.setIgnoreMouseEvents(...args)
+})
