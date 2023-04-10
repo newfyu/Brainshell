@@ -22,8 +22,9 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     height: h,
     frame: frame,
     transparent: transparent,
-    hasShadow: false,
+    hasShadow: true,
     alwaysOnTop: true,
+    show: false,
     // level: 'floating',
     webPreferences: {
 
@@ -47,6 +48,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
+  
 
 }
 
@@ -82,6 +84,9 @@ app.on('ready', async () => {
   //   devtools.connect(/* host, port */)
   // }
   createWindow()
+  win.once('ready-to-show', () => {
+    win.show()
+  })
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -100,6 +105,7 @@ if (isDevelopment) {
 }
 
 
+// lock
 ipcMain.on('render2main', (event, param1) => {
   console.log(param1)
   if (param1 === 'reloadWindow') {
@@ -109,12 +115,18 @@ ipcMain.on('render2main', (event, param1) => {
       createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false)
       isLock = true
       win.setResizable(false)
+      win.once('ready-to-show', () => {
+        win.show()
+      })
     } else {
       const bounds = win.getBounds();
       win.close()
       createWindow(false, bounds.x, bounds.y - 28, bounds.width, bounds.height, true)
       isLock = false
       win.setResizable(true)
+      win.once('ready-to-show', () => {
+        win.show()
+      })
     }
   }
 })
@@ -154,3 +166,4 @@ app.on('web-contents-created', (e, webContents) => {
     shell.openExternal(url);
   });
 });
+
