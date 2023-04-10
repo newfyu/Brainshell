@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Refresh, VideoPause, Lock, Pointer } from '@element-plus/icons-vue'
+import { Delete, Lock, Pointer, ArrowLeft, ArrowRight, DocumentAdd } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -161,20 +161,14 @@ const lock = () => {
 onMounted(() => {
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
-    // let flag = event.target === document.documentElement;
-    // let flag = event.target === document.getElementById("chatWin");
     let flag = event.target.classList.contains('permeable');
-    
     if (flag && isLock) {
       win.setIgnoreMouseEvents(true, { forward: true });
     }
     else {
       win.setIgnoreMouseEvents(false);
     }
-    // win.setIgnoreMouseEvents(true,{forward: true});
   })
-
-
   dragHandle.value = document.getElementById('drag-handle');
   scrollEnd()
 })
@@ -193,6 +187,7 @@ onMounted(() => {
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
+        <TransitionGroup tag="div" name="fade">
         <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
           <div>
             <!-- <div class="Q" v-html="round[0]"></div> -->
@@ -204,6 +199,7 @@ onMounted(() => {
             <div class="A" v-html="round[1]"></div>
           </div>
         </div>
+      </TransitionGroup>
       </el-scrollbar>
     </el-col>
   </el-row>
@@ -224,15 +220,27 @@ onMounted(() => {
 
       <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
       <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" @keydown.enter.exact.prevent="sendRequests"
-        type="textarea" ref="inputRef" clearable="true" maxlength="1000" show-word-limit="true" placeholder="请输入内容"
-        resize="none" :autosize="{ minRows: 2, maxRows: 5 }">
+        type="textarea" ref="inputRef" clearable="true" maxlength="1000" placeholder="请输入内容" resize="none"
+        :autosize="{ minRows: 2, maxRows: 5 }">
       </el-input>
-      <el-row class="toolbar ">
-        <el-button class="toolButton" :icon="Refresh" text="true" bg="true" circle @click="clearContext" />
-        <el-button class="toolButton" :icon="Delete" text="true" bg="true" circle />
-        <el-button class="toolButton" :icon="VideoPause" text="true" bg="true" circle />
-        <el-button class="toolButton" :icon="Lock" text="true" bg="true" circle @click="lock" />
-        <el-button id="drag-handle" :icon="Pointer" text="true" bg="true" circle />
+      <el-row class="toolbar dark">
+        <el-col :span="16">
+          <el-tooltip content="新建对话页面" placement="top" effect="light"><el-button :icon="DocumentAdd" text circle
+              @click="clearContext" type="info" /></el-tooltip>
+          <el-tooltip content="删除当前页面" placement="top" effect="light"><el-button :icon="Delete" text circle
+            type="info" /></el-tooltip>
+          <!-- <el-button :icon="VideoPause" text  circle /> -->
+          <el-tooltip content="锁定窗口" placement="top" effect="light"><el-button :icon="Lock" text circle @click="lock"
+            type="info" /></el-tooltip>
+          <el-tooltip content="移动窗口" placement="top" effect="light"><el-button id="drag-handle" :icon="Pointer" text
+              circle v-show="isLock" type="info" /></el-tooltip>
+
+        </el-col>
+        <el-col :span="8" class="right-align">
+          <el-button :icon="ArrowLeft" link circle type="info" />
+          <el-text size='small' type="info">3/4</el-text>
+          <el-button :icon="ArrowRight" link circle type="info" />
+        </el-col>
       </el-row>
     </div>
   </el-footer>

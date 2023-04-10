@@ -107,12 +107,11 @@ if (isDevelopment) {
 
 // lock
 ipcMain.on('render2main', (event, param1) => {
-  console.log(param1)
   if (param1 === 'reloadWindow') {
     if (!isLock) {
       const bounds = win.getBounds();
       win.close()
-      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false, true)
+      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false, false)
       isLock = true
       win.setResizable(false)
       win.once('ready-to-show', () => {
