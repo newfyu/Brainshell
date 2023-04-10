@@ -13,7 +13,7 @@ protocol.registerSchemesAsPrivileged([
 
 let win = null
 let isLock = false
-async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900, frame=true) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900, frame=true, shadow=true) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
@@ -22,7 +22,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     height: h,
     frame: frame,
     transparent: transparent,
-    hasShadow: true,
+    hasShadow: shadow,
     alwaysOnTop: true,
     show: false,
     // level: 'floating',
@@ -112,7 +112,7 @@ ipcMain.on('render2main', (event, param1) => {
     if (!isLock) {
       const bounds = win.getBounds();
       win.close()
-      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false)
+      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false, true)
       isLock = true
       win.setResizable(false)
       win.once('ready-to-show', () => {
@@ -121,7 +121,7 @@ ipcMain.on('render2main', (event, param1) => {
     } else {
       const bounds = win.getBounds();
       win.close()
-      createWindow(false, bounds.x, bounds.y - 28, bounds.width, bounds.height, true)
+      createWindow(false, bounds.x, bounds.y - 28, bounds.width, bounds.height, true, true)
       isLock = false
       win.setResizable(true)
       win.once('ready-to-show', () => {

@@ -38,7 +38,6 @@ let currentWindow = remote.getCurrentWindow();
 let defaultBodyHeight = currentWindow.getSize()[1] - 280
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
-let chatWindow = ref(null)
 const dragHandle = ref(null);
 const tags = ref([
   { name: 'Tag 1', type: '' },
@@ -165,7 +164,6 @@ onMounted(() => {
     // let flag = event.target === document.documentElement;
     // let flag = event.target === document.getElementById("chatWin");
     let flag = event.target.classList.contains('permeable');
-    // let flag = event.target === chatWindow.value;
     
     if (flag && isLock) {
       win.setIgnoreMouseEvents(true, { forward: true });
@@ -192,7 +190,7 @@ onMounted(() => {
 
 
 <template>
-  <el-row justify="center" align="bottom" class="QAs permeable" ref="chatWindow" :style="{ height: bodyHeight }">
+  <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
         <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
