@@ -38,8 +38,48 @@
     max-height: 150px;
     overflow-y: auto;
 }
+
+
+#textArea { 
+    border-radius: 10px 10px 0 0;
+    /* border:2px solid white; */
+} 
+
+
 .toolbar {
+    padding: 0px 0px;
+}
+
+.toolbar-inner {
+    width: 100%;
+    background-color: white;
+    display: flex;
+    border-radius:0 0 10px 10px;
     padding: 5px;
+    
+  
+}
+
+.inputFocus {
+    border-left: solid var(--el-color-primary);
+    border-right: solid var(--el-color-primary);
+    border-bottom: solid var(--el-color-primary);
+}
+
+.el-textarea__inner{
+    box-shadow:unset;
+    padding: 10px;
+}
+.el-textarea__inner:focus {
+    box-shadow:unset;
+    border-width: 1px;
+    border-top: solid var(--el-color-primary);
+    border-left: solid var(--el-color-primary);
+    border-right: solid var(--el-color-primary);
+}
+
+.el-textarea__inner:hover{
+    box-shadow:unset;
 }
 
 .el-button.is-text:not(.is-disabled).is-has-bg {
@@ -65,10 +105,7 @@ pre {
     font-size: large !important;
 }
 
-/* #textArea { */
-    /* border-radius: 1%; */
-    /* border:1px solid gray; */
-/* } */
+
 
 #drag-handle {
     -webkit-app-region: drag;
