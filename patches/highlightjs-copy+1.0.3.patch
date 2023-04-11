@@ -1,0 +1,10 @@
+diff --git a/node_modules/highlightjs-copy/index.js b/node_modules/highlightjs-copy/index.js
+index aa4fceb..f5c629e 100644
+--- a/node_modules/highlightjs-copy/index.js
++++ b/node_modules/highlightjs-copy/index.js
+@@ -81,3 +81,4 @@ class CopyButtonPlugin {
+  * @param {HTMLElement} el - The code block element that was copied from.
+  * @returns {string|undefined}
+  */
++module.exports = CopyButtonPlugin
+\ No newline at end of file

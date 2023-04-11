@@ -6007,6 +6007,11 @@
   "resolved" "https://registry.npmjs.org/highlight.js/-/highlight.js-11.7.0.tgz"
   "version" "11.7.0"
 
+"highlightjs-copy@^1.0.3":
+  "integrity" "sha512-vXHBmzz7IuJg8f5ixX7qxhfCCDnEQCXRuIzcd7yTblJazZT3ZkaRto0md8IfBu86JdK4VRIdKMubxKt7kwNGfg=="
+  "resolved" "https://registry.npmjs.org/highlightjs-copy/-/highlightjs-copy-1.0.3.tgz"
+  "version" "1.0.3"
+
 "hmac-drbg@^1.0.1":
   "integrity" "sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg=="
   "resolved" "https://registry.npmmirror.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz"

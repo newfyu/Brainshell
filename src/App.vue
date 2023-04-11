@@ -6,9 +6,11 @@ import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
+import { ElMessage } from 'element-plus'
+// import CopyButtonPlugin from 'highlightjs-copy';
 
 
-
+// hljs.addPlugin(new CopyButtonPlugin());
 const md = Markdown({
   highlight: (str, lang) => {
     const code = lang && hljs.getLanguage(lang)
@@ -20,7 +22,6 @@ const md = Markdown({
     return `<pre class="hljs"><code>${code}</code></pre>`;
   },
 });
-
 
 // let test_q = '<a href="file/temp/reference-1.txt" class="asklink" title="Open text snippet 0.218">[1] </a> 写一个vue的<script setup>示例,沙发上地方暗示法发啥呆发啥发水电费安抚沙发舒服asdf阿四饭店啥'
 // let test_a = '好的    \n这里是一个简单的Python类\n> 它只有一个属性和一个方法来设置和打印\n> 该属性值:\n\n```python\nclass Person:\n    def __init__(self, name):\n        self.name = name\n    \n    def say_hello(self):\n        print(f"Hello, my name is {self.name}")\n```\n\n在这个例子中,我们定义了一个`Person`类,它具有一个`__init__`方法来设置`name`属性,以及一个`say_hello`方法来打印出该属性的值。\n\n我们可以使用以下代码创建一个`Person`对象,并使用`say_hello`方法打印出其名称:\n\n```python\nperson = Person("Alice")\nperson.say_hello()\n```\n\n这将产生以下输出:\n\n```\nHello, my name is Alice\n```\n\n'
@@ -34,8 +35,9 @@ let caretPosition = ref({ left: 0, top: 0 })
 let inputText = ref('')
 let inputRef = ref(null)
 let showList = ref(false)
+const winOffset = 160
 let currentWindow = remote.getCurrentWindow();
-let defaultBodyHeight = currentWindow.getSize()[1] - 280
+let defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
 let pageInfo = ref(null)
@@ -51,41 +53,52 @@ const tags = ref([]);
 let isLock = !currentWindow.isResizable()
 
 currentWindow.on('resize', () => {
-  bodyHeight.value = `${currentWindow.getSize()[1] - 280}px`
-  defaultBodyHeight = currentWindow.getSize()[1] - 280
+  bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
+  defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 })
 
 
 
 const sendRequests = () => {
   // 发送总请求
+
   let question = inputText.value
-  axios.post('http://127.0.0.1:7860/run/ask', {
-    data: [question, "", "", "default", "", "brainshell"]
-  }).then(response => {
-    QAcontext.value = response['data']['data'][0]
-    md2html()
-    clearInterval(intervalId); // 停止流式请求
-  }).catch(error => {
-    console.error(error);
-  });
-  // 发送流式结果请求
-  intervalId = setInterval(() => {
-    axios.post('http://127.0.0.1:7860/run/get_ask_stream_answer', {
-      data: [question, []]
+  if (question) {
+    axios.post('http://127.0.0.1:7860/run/ask', {
+      data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
-      QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
-      scrollEnd();
-      md2html();
+      QAcontext.value = response['data']['data'][0]
+      md2html()
+      clearInterval(intervalId); // 停止流式请求
     }).catch(error => {
       console.error(error);
     });
-  }, 100);
-  inputText.value = "";
+    // 发送流式结果请求
+    intervalId = setInterval(() => {
+      axios.post('http://127.0.0.1:7860/run/get_ask_stream_answer', {
+        data: [question, []]
+      }).then(response => {
+        QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
+        scrollEnd();
+        md2html();
+      }).catch(error => {
+        console.error(error);
+      });
+    }, 100);
+    inputText.value = "";
+  } else {
+    ElMessage({
+    message: '没输入内容啊',
+    type: 'warning',
+  })
+  }
 }
 
 const scrollEnd = () => {
-  scrollbarRef.value.setScrollTop(9999) //滚动到底部
+  setTimeout(() => {
+    scrollbarRef.value.setScrollTop(9999)
+  }, 50)
+  //滚动到底部
 }
 
 const md2html = () => {
@@ -147,6 +160,7 @@ const nextPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    md2html()
     scrollEnd()
   }).catch(error => {
     console.error(error);
@@ -159,6 +173,7 @@ const prevPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    md2html()
     scrollEnd()
   }).catch(error => {
     console.error(error);
@@ -171,6 +186,7 @@ const delPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
+    md2html()
     scrollEnd()
   }).catch(error => {
     console.error(error);
@@ -212,15 +228,11 @@ onMounted(() => {
 ///////////////////////////////////
 
 
-
-
-
-
 <template>
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
-        <TransitionGroup tag="div" name="fade">
+        <TransitionGroup tag="div" name="slide">
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <!-- <div class="Q" v-html="round[0]"></div> -->
@@ -260,8 +272,16 @@ onMounted(() => {
         <el-col :span="16">
           <el-tooltip content="新建对话页面" placement="top" effect="light"><el-button :icon="DocumentAdd" text circle
               @click="newPage" type="info" /></el-tooltip>
-          <el-tooltip content="删除当前页面" placement="top" effect="light"><el-button :icon="Delete" text circle
-              @click="delPage" type="info" /></el-tooltip>
+
+
+          <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
+            placement="top">
+            <template #reference>
+              <el-button :icon="Delete" text circle type="info" />
+            </template>
+          </el-popconfirm>
+
+
           <!-- <el-button :icon="VideoPause" text  circle /> -->
           <el-tooltip content="锁定窗口" placement="top" effect="light"><el-button :icon="Lock" text circle @click="lock"
               type="info" /></el-tooltip>

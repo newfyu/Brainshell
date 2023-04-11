@@ -102,3 +102,26 @@ pre {
 .right-align {
     text-align: right;
   }
+
+
+.slide-move,
+.slide-enter-active,
+.slide-leave-active {
+transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+opacity: 0;
+transform: translateY(50px);
+}
+
+.slide-leave-active {
+position: absolute;
+}
+
+/* 假设你想要上下平移的元素在向上滑动时在底部对齐 */
+.bottom-align {
+position: absolute;
+bottom: 0;
+}
