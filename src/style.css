@@ -50,35 +50,38 @@
     padding: 0px 0px;
 }
 
+.el-textarea__inner{
+    box-shadow:unset;
+    padding: 10px;
+}
 .toolbar-inner {
     width: 100%;
     background-color: white;
     display: flex;
     border-radius:0 0 10px 10px;
-    padding: 5px;
-    
-  
+    padding: 5px; 
 }
 
-.inputFocus {
-    border-left: solid var(--el-color-primary);
-    border-right: solid var(--el-color-primary);
-    border-bottom: solid var(--el-color-primary);
+.inputAreaContainer{
+    border: 1px solid var(--el-border-color-darker);
+    border-radius: 10px;
+}
+.inputAreaContainer:hover{
+    border: 1px solid var(--el-color-primary);
+    border-radius: 10px;
+}
+
+.InputFocus{
+    border: 1px solid var(--el-color-primary);
 }
 
 .el-textarea__inner{
     box-shadow:unset;
-    padding: 10px;
 }
-.el-textarea__inner:focus {
-    box-shadow:unset;
-    border-width: 1px;
-    border-top: solid var(--el-color-primary);
-    border-left: solid var(--el-color-primary);
-    border-right: solid var(--el-color-primary);
-}
-
 .el-textarea__inner:hover{
+    box-shadow:unset;
+}
+.el-textarea__inner:focus{
     box-shadow:unset;
 }
 

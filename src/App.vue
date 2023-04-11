@@ -1,16 +1,13 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Lock, Pointer, ArrowLeft, ArrowRight, DocumentAdd } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
 import { ElMessage } from 'element-plus'
-// import CopyButtonPlugin from 'highlightjs-copy';
 
-
-// hljs.addPlugin(new CopyButtonPlugin());
 const md = Markdown({
   highlight: (str, lang) => {
     const code = lang && hljs.getLanguage(lang)
@@ -35,13 +32,15 @@ let caretPosition = ref({ left: 0, top: 0 })
 let inputText = ref('')
 let inputRef = ref(null)
 let showList = ref(false)
-const winOffset = 160
+const winOffset = 180
 let currentWindow = remote.getCurrentWindow();
 let defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
 let pageInfo = ref(null)
+let streaming = ref(false)
 const dragHandle = ref(null);
+let isInputFocus = ref(null)
 // const tags = ref([
 //   { name: 'Tag 1', type: '' },
 //   { name: 'Tag 2', type: 'success' },
@@ -61,15 +60,16 @@ currentWindow.on('resize', () => {
 
 const sendRequests = () => {
   // 发送总请求
-
   let question = inputText.value
   if (question) {
+    streaming.value = true
     axios.post('http://127.0.0.1:7860/run/ask', {
       data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
       QAcontext.value = response['data']['data'][0]
       md2html()
       clearInterval(intervalId); // 停止流式请求
+      streaming.value = false
     }).catch(error => {
       console.error(error);
     });
@@ -88,9 +88,9 @@ const sendRequests = () => {
     inputText.value = "";
   } else {
     ElMessage({
-    message: '没输入内容啊',
-    type: 'warning',
-  })
+      message: '没输入内容啊',
+      type: 'warning',
+    })
   }
 }
 
@@ -193,7 +193,6 @@ const delPage = () => {
   });
 }
 
-
 const lock = () => {
   if (isLock) {
     isLock = false;
@@ -203,8 +202,13 @@ const lock = () => {
   }
   ipcRenderer.send("render2main", "reloadWindow");
 }
+const textAreaFocus = () => {
+  isInputFocus.value=true
+}
 
-
+const textAreaBlur = () => {
+  isInputFocus.value=false
+}
 
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -263,38 +267,43 @@ onMounted(() => {
         {{ tag.name }}
       </el-tag>
 
-      <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
+      <div class="inputAreaContainer" :class="{'InputFocus':isInputFocus}">  <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
+      <el-row>
       <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" @keydown.enter.exact.prevent="sendRequests"
-        type="textarea" ref="inputRef" clearable="true" maxlength="1000" placeholder="请输入内容" resize="none"
-        :autosize="{ minRows: 2, maxRows: 5 }">
+        type="textarea" ref="inputRef"  maxlength="1000" placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+        :autosize="{ minRows: 2, maxRows: 5 }" :disabled="streaming">
       </el-input>
-      <el-row class="toolbar dark">
+    </el-row>
+    
+    
+      <el-row class="toolbar" >
+        <div class="toolbar-inner" id="drag-handle">
         <el-col :span="16">
-          <el-tooltip content="新建对话页面" placement="top" effect="light"><el-button :icon="DocumentAdd" text circle
-              @click="newPage" type="info" /></el-tooltip>
-
-
+          <el-tooltip content="新建对话页面" placement="top" effect="light">
+            <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming" />
+          </el-tooltip>
           <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
             placement="top">
             <template #reference>
-              <el-button :icon="Delete" text circle type="info" />
+              <el-button :icon="Delete" text circle type="info" :disabled="streaming" />
             </template>
           </el-popconfirm>
-
-
-          <!-- <el-button :icon="VideoPause" text  circle /> -->
-          <el-tooltip content="锁定窗口" placement="top" effect="light"><el-button :icon="Lock" text circle @click="lock"
-              type="info" /></el-tooltip>
-          <el-tooltip content="移动窗口" placement="top" effect="light"><el-button id="drag-handle" :icon="Pointer" text
-              circle v-show="isLock" type="info" /></el-tooltip>
+          <el-tooltip content="锁定窗口" placement="top" effect="light">
+            <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" />
+          </el-tooltip>
 
         </el-col>
         <el-col :span="8" class="right-align">
-          <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" />
+          <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
           <el-text size='small' type="info">{{ pageInfo }}</el-text>
-          <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" />
+          <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming" />
         </el-col>
+      </div>
       </el-row>
+      </div>
+
+
+
     </div>
   </el-footer>
 </template>

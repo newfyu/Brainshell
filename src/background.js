@@ -25,6 +25,8 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     hasShadow: shadow,
     alwaysOnTop: top,
     show: false,
+    minWidth:400,
+    minHeight:600,
     // level: 'floating',
     webPreferences: {
 
