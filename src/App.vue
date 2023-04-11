@@ -38,6 +38,7 @@ let currentWindow = remote.getCurrentWindow();
 let defaultBodyHeight = currentWindow.getSize()[1] - 280
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
+let pageInfo = ref(null)
 const dragHandle = ref(null);
 // const tags = ref([
 //   { name: 'Tag 1', type: '' },
@@ -87,8 +88,6 @@ const scrollEnd = () => {
   scrollbarRef.value.setScrollTop(9999) //滚动到底部
 }
 
-
-
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {
     // QAcontext.value[i][0] = md.render(QAcontext.value[i][0]); //md转html显示question
@@ -122,8 +121,6 @@ const handleInput = (event) => {
     const textareaHeight = parseInt(inputRef.value.textarea.style.height)
     bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
   }, 100)
-
-
 }
 
 const selectItem = (item) => {
@@ -131,19 +128,53 @@ const selectItem = (item) => {
   showList.value = false;
 }
 
-const clearContext = () => {
-  axios.post('http://127.0.0.1:7860/run/clear_context', {
+const newPage = () => {
+  axios.post('http://127.0.0.1:7860/run/new_page', {
     data: []
-  }).then(() => {
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][6]
     QAcontext.value = ""
   }).catch(error => {
     console.error(error);
   });
   clearInterval(intervalId);
-  // remote.getCurrentWindow().hide();
   QAcontext.value = ""
-  // remote.getCurrentWindow().show();
+}
 
+const nextPage = () => {
+  axios.post('http://127.0.0.1:7860/run/next_page', {
+    data: []
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][5]
+    QAcontext.value = response['data']['data'][0]
+    scrollEnd()
+  }).catch(error => {
+    console.error(error);
+  });
+}
+
+const prevPage = () => {
+  axios.post('http://127.0.0.1:7860/run/prev_page', {
+    data: []
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][5]
+    QAcontext.value = response['data']['data'][0]
+    scrollEnd()
+  }).catch(error => {
+    console.error(error);
+  });
+}
+
+const delPage = () => {
+  axios.post('http://127.0.0.1:7860/run/del_page', {
+    data: []
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][6]
+    QAcontext.value = response['data']['data'][0]
+    scrollEnd()
+  }).catch(error => {
+    console.error(error);
+  });
 }
 
 
@@ -171,6 +202,7 @@ onMounted(() => {
     }
   })
   dragHandle.value = document.getElementById('drag-handle');
+  newPage()
   scrollEnd()
 })
 
@@ -227,9 +259,9 @@ onMounted(() => {
       <el-row class="toolbar dark">
         <el-col :span="16">
           <el-tooltip content="新建对话页面" placement="top" effect="light"><el-button :icon="DocumentAdd" text circle
-              @click="clearContext" type="info" /></el-tooltip>
+              @click="newPage" type="info" /></el-tooltip>
           <el-tooltip content="删除当前页面" placement="top" effect="light"><el-button :icon="Delete" text circle
-              type="info" /></el-tooltip>
+              @click="delPage" type="info" /></el-tooltip>
           <!-- <el-button :icon="VideoPause" text  circle /> -->
           <el-tooltip content="锁定窗口" placement="top" effect="light"><el-button :icon="Lock" text circle @click="lock"
               type="info" /></el-tooltip>
@@ -238,9 +270,9 @@ onMounted(() => {
 
         </el-col>
         <el-col :span="8" class="right-align">
-          <el-button :icon="ArrowLeft" link circle type="info" />
-          <el-text size='small' type="info">3/4</el-text>
-          <el-button :icon="ArrowRight" link circle type="info" />
+          <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" />
+          <el-text size='small' type="info">{{ pageInfo }}</el-text>
+          <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" />
         </el-col>
       </el-row>
     </div>
