@@ -39,13 +39,14 @@ let defaultBodyHeight = currentWindow.getSize()[1] - 280
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
 const dragHandle = ref(null);
-const tags = ref([
-  { name: 'Tag 1', type: '' },
-  { name: 'Tag 2', type: 'success' },
-  { name: 'Tag 3', type: 'info' },
-  { name: 'Tag 4', type: 'warning' },
+// const tags = ref([
+//   { name: 'Tag 1', type: '' },
+//   { name: 'Tag 2', type: 'success' },
+//   { name: 'Tag 3', type: 'info' },
+//   { name: 'Tag 4', type: 'warning' },
 
-])
+// ])
+const tags = ref([]);
 let isLock = !currentWindow.isResizable()
 
 currentWindow.on('resize', () => {
@@ -188,18 +189,18 @@ onMounted(() => {
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
         <TransitionGroup tag="div" name="fade">
-        <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
-          <div>
-            <!-- <div class="Q" v-html="round[0]"></div> -->
-            <div class="Q">
-              <pre class="preQ">{{ round[0] }}</pre>
+          <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
+            <div>
+              <!-- <div class="Q" v-html="round[0]"></div> -->
+              <div class="Q">
+                <pre class="preQ">{{ round[0] }}</pre>
+              </div>
+            </div>
+            <div>
+              <div class="A" v-html="round[1]"></div>
             </div>
           </div>
-          <div>
-            <div class="A" v-html="round[1]"></div>
-          </div>
-        </div>
-      </TransitionGroup>
+        </TransitionGroup>
       </el-scrollbar>
     </el-col>
   </el-row>
@@ -228,10 +229,10 @@ onMounted(() => {
           <el-tooltip content="新建对话页面" placement="top" effect="light"><el-button :icon="DocumentAdd" text circle
               @click="clearContext" type="info" /></el-tooltip>
           <el-tooltip content="删除当前页面" placement="top" effect="light"><el-button :icon="Delete" text circle
-            type="info" /></el-tooltip>
+              type="info" /></el-tooltip>
           <!-- <el-button :icon="VideoPause" text  circle /> -->
           <el-tooltip content="锁定窗口" placement="top" effect="light"><el-button :icon="Lock" text circle @click="lock"
-            type="info" /></el-tooltip>
+              type="info" /></el-tooltip>
           <el-tooltip content="移动窗口" placement="top" effect="light"><el-button id="drag-handle" :icon="Pointer" text
               circle v-show="isLock" type="info" /></el-tooltip>
 
