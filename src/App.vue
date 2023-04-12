@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -39,6 +39,7 @@ let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
 let pageInfo = ref(null)
 let streaming = ref(false)
+let isLoading = ref(true)
 const dragHandle = ref(null);
 let isInputFocus = ref(null)
 // const tags = ref([
@@ -79,8 +80,8 @@ const sendRequests = () => {
         data: [question, []]
       }).then(response => {
         QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
-        scrollEnd();
         md2html();
+        scrollEnd();
       }).catch(error => {
         console.error(error);
       });
@@ -161,7 +162,7 @@ const nextPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     md2html()
-    scrollEnd()
+    // scrollEnd()
   }).catch(error => {
     console.error(error);
   });
@@ -174,7 +175,7 @@ const prevPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     md2html()
-    scrollEnd()
+    // scrollEnd()
   }).catch(error => {
     console.error(error);
   });
@@ -193,6 +194,17 @@ const delPage = () => {
   });
 }
 
+const stopRequest = () => {
+  axios.post('http://127.0.0.1:7860/run/stop', {
+    data: []
+  }).then(() => {
+    scrollEnd()
+  }).catch(error => {
+    console.error(error);
+  });
+}
+
+
 const lock = () => {
   if (isLock) {
     isLock = false;
@@ -203,12 +215,21 @@ const lock = () => {
   ipcRenderer.send("render2main", "reloadWindow");
 }
 const textAreaFocus = () => {
-  isInputFocus.value=true
+  isInputFocus.value = true
 }
 
 const textAreaBlur = () => {
-  isInputFocus.value=false
+  isInputFocus.value = false
 }
+
+const toolbarOnHover = () => {
+  isLoading.value = false
+}
+
+const toolbarOnLeave = () => {
+  isLoading.value = true
+}
+
 
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -236,7 +257,7 @@ onMounted(() => {
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
-        <TransitionGroup tag="div" name="slide">
+        <TransitionGroup tag="div" name="fade">
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <!-- <div class="Q" v-html="round[0]"></div> -->
@@ -267,39 +288,44 @@ onMounted(() => {
         {{ tag.name }}
       </el-tag>
 
-      <div class="inputAreaContainer" :class="{'InputFocus':isInputFocus}">  <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
-      <el-row>
-      <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" @keydown.enter.exact.prevent="sendRequests"
-        type="textarea" ref="inputRef"  maxlength="1000" placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
-        :autosize="{ minRows: 2, maxRows: 5 }" :disabled="streaming">
-      </el-input>
-    </el-row>
-    
-    
-      <el-row class="toolbar" >
-        <div class="toolbar-inner" id="drag-handle">
-        <el-col :span="16">
-          <el-tooltip content="新建对话页面" placement="top" effect="light">
-            <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming" />
-          </el-tooltip>
-          <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
-            placement="top">
-            <template #reference>
-              <el-button :icon="Delete" text circle type="info" :disabled="streaming" />
-            </template>
-          </el-popconfirm>
-          <el-tooltip content="锁定窗口" placement="top" effect="light">
-            <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" />
-          </el-tooltip>
+      <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
+        <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
+        <el-row>
+          <el-input id="textArea" v-model.lazy="inputText" @input="handleInput"
+            @keydown.enter.exact.prevent="sendRequests" type="textarea" ref="inputRef" maxlength="1000"
+            placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+            :autosize="{ minRows: 1, maxRows: 5 }" :disabled="streaming">
+          </el-input>
+        </el-row>
 
-        </el-col>
-        <el-col :span="8" class="right-align">
-          <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
-          <el-text size='small' type="info">{{ pageInfo }}</el-text>
-          <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming" />
-        </el-col>
-      </div>
-      </el-row>
+
+        <el-row class="toolbar">
+          <div class="toolbar-inner" id="drag-handle">
+            <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+              <el-tooltip content="新建对话页面" placement="top" effect="light">
+                <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
+                  v-show="!streaming" />
+              </el-tooltip>
+              <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
+                placement="top">
+                <template #reference>
+                  <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming" />
+                </template>
+              </el-popconfirm>
+              <el-tooltip content="锁定窗口" placement="top" effect="light">
+                <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
+              </el-tooltip>
+              <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
+                v-show="streaming" @click="stopRequest">stop</el-button>
+
+            </el-col>
+            <el-col :span="8" class="right-align">
+              <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
+              <el-text size='small' type="info">{{ pageInfo }}</el-text>
+              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming" />
+            </el-col>
+          </div>
+        </el-row>
       </div>
 
 
