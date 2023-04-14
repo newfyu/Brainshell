@@ -20,10 +20,21 @@ const md = Markdown({
   },
 });
 
+const md2html = () => {
+  for (let i = 0; i < QAcontext.value.length; i++) {
+    QAcontext.value[i][1] = md.render(QAcontext.value[i][1]);
+  }
+}
+
+
 // let test_q = '<a href="file/temp/reference-1.txt" class="asklink" title="Open text snippet 0.218">[1] </a> 写一个vue的<script setup>示例,沙发上地方暗示法发啥呆发啥发水电费安抚沙发舒服asdf阿四饭店啥'
 // let test_a = '好的    \n这里是一个简单的Python类\n> 它只有一个属性和一个方法来设置和打印\n> 该属性值:\n\n```python\nclass Person:\n    def __init__(self, name):\n        self.name = name\n    \n    def say_hello(self):\n        print(f"Hello, my name is {self.name}")\n```\n\n在这个例子中,我们定义了一个`Person`类,它具有一个`__init__`方法来设置`name`属性,以及一个`say_hello`方法来打印出该属性的值。\n\n我们可以使用以下代码创建一个`Person`对象,并使用`say_hello`方法打印出其名称:\n\n```python\nperson = Person("Alice")\nperson.say_hello()\n```\n\n这将产生以下输出:\n\n```\nHello, my name is Alice\n```\n\n'
-// test_q = md.render(test_q);
+// console.log(test_a)
+// test_a = md.render(test_a);
+// console.log(test_a)
 // let QAcontext = ref([[test_q, test_a]]);
+// md2html()
+
 
 let QAcontext = ref([]);
 let scrollbarRef = ref(null);
@@ -56,8 +67,6 @@ currentWindow.on('resize', () => {
   bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
   defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 })
-
-
 
 const sendRequests = () => {
   // 发送总请求
@@ -102,22 +111,13 @@ const scrollEnd = () => {
   //滚动到底部
 }
 
-const md2html = () => {
-  for (let i = 0; i < QAcontext.value.length; i++) {
-    // QAcontext.value[i][0] = md.render(QAcontext.value[i][0]); //md转html显示question
-    // QAcontext.value[i][0] = `<pre>${preFormat(QAcontext.value[i][0])}</pre>`;
-    QAcontext.value[i][1] = md.render(QAcontext.value[i][1]);
-  }
-}
 
 // 如果要在任意位置识别# 可能要加键盘响应才行
 const handleInput = (event) => {
   const input = inputRef.value.textarea;
   const rect = input.getBoundingClientRect(); // 获得绝对坐标
   const text = event
-  // console.log(event)
   const cursorPos = event.length
-  // console.log(rect)
   caretPosition.value = {
     left: `${rect.x + cursorPos * 8}px`, // TODO 还要考虑换行什么的，要精确计算一下
     top: `${rect.top - 100}px`,  // TODO 这个100应该是mtagList的高度，mTagList以后要设置一下
@@ -134,7 +134,7 @@ const handleInput = (event) => {
   setTimeout(() => {
     const textareaHeight = parseInt(inputRef.value.textarea.style.height)
     bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
-  }, 100)
+  }, 50)
 }
 
 const selectItem = (item) => {
@@ -162,7 +162,7 @@ const nextPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     md2html()
-    // scrollEnd()
+    scrollEnd()
   }).catch(error => {
     console.error(error);
   });
@@ -174,6 +174,7 @@ const prevPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    console.log(response['data']['data'][0])
     md2html()
     // scrollEnd()
   }).catch(error => {
@@ -188,7 +189,7 @@ const delPage = () => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
     md2html()
-    scrollEnd()
+    // scrollEnd()
   }).catch(error => {
     console.error(error);
   });
@@ -202,6 +203,7 @@ const stopRequest = () => {
   }).catch(error => {
     console.error(error);
   });
+  clearInterval(intervalId);
 }
 
 
@@ -243,8 +245,14 @@ onMounted(() => {
     }
   })
   dragHandle.value = document.getElementById('drag-handle');
-  newPage()
+  // newPage()
   scrollEnd()
+
+  setTimeout(() => {
+    const textareaHeight = parseInt(inputRef.value.textarea.style.height)
+    bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
+  }, 50)
+ 
 })
 
 </script>
@@ -257,7 +265,7 @@ onMounted(() => {
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
-        <TransitionGroup tag="div" name="fade">
+        <TransitionGroup tag="div" name="slide">
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <!-- <div class="Q" v-html="round[0]"></div> -->

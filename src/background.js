@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, Menu, shell } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain,shell } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
@@ -158,7 +158,7 @@ ipcMain.on('render2main', (event, param1) => {
 
 //外部打开链接
 app.on('web-contents-created', (e, webContents) => {
-  webContents.setWindowOpenHandler(({ url, frameName }) => {
+  webContents.setWindowOpenHandler(({ url}) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
