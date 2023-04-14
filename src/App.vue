@@ -53,6 +53,7 @@ let streaming = ref(false)
 let isLoading = ref(true)
 const dragHandle = ref(null);
 let isInputFocus = ref(null)
+let cancelToken = null
 // const tags = ref([
 //   { name: 'Tag 1', type: '' },
 //   { name: 'Tag 2', type: 'success' },
@@ -73,6 +74,7 @@ const sendRequests = () => {
   let question = inputText.value
   if (question) {
     streaming.value = true
+    cancelToken = axios.CancelToken.source()
     axios.post('http://127.0.0.1:7860/run/ask', {
       data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
@@ -204,6 +206,10 @@ const stopRequest = () => {
     console.error(error);
   });
   clearInterval(intervalId);
+  if (cancelToken) {
+    cancelToken.cancel('请求已取消')
+    streaming.value = false
+  }
 }
 
 
