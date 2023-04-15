@@ -258,7 +258,7 @@ onMounted(() => {
     const textareaHeight = parseInt(inputRef.value.textarea.style.height)
     bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
   }, 50)
- 
+
 })
 
 </script>
@@ -316,22 +316,32 @@ onMounted(() => {
         <el-row class="toolbar">
           <div class="toolbar-inner" id="drag-handle">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
-              <el-tooltip content="新建对话页面" placement="top" effect="light">
-                <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
-                  v-show="!streaming" />
-              </el-tooltip>
+
+              <!-- <el-tooltip content="新建对话页面" placement="top" effect="light"> -->
+                <Transition name="fade">
+                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
+                    v-show="!streaming" />
+                </Transition>
+              <!-- </el-tooltip> -->
+
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
                 <template #reference>
-                  <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming" />
+                  <Transition name="fade">
+                    <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming" />
+                  </Transition>
                 </template>
               </el-popconfirm>
-              <el-tooltip content="锁定窗口" placement="top" effect="light">
-                <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
-              </el-tooltip>
-              <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
-                v-show="streaming" @click="stopRequest">stop</el-button>
-
+              <!-- <el-tooltip content="锁定窗口" placement="top" effect="light"> -->
+                <Transition name="fade">
+                  <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
+                    v-show="!streaming" />
+                </Transition>
+              <!-- </el-tooltip> -->
+              <Transition name="fade">
+                <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
+                  v-show="streaming" @click="stopRequest">stop</el-button>
+              </Transition>
             </el-col>
             <el-col :span="8" class="right-align">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />

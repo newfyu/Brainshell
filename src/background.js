@@ -13,7 +13,7 @@ protocol.registerSchemesAsPrivileged([
 
 let win = null
 let isLock = false
-async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 900, frame=true, shadow=true, top=false) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 400, h = 1000, frame=true, shadow=true, top=false) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
