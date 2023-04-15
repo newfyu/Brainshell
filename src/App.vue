@@ -43,8 +43,14 @@ let caretPosition = ref({ left: 0, top: 0 })
 let inputText = ref('')
 let inputRef = ref(null)
 let showList = ref(false)
-const winOffset = 180
+
 let currentWindow = remote.getCurrentWindow();
+let isLock = !currentWindow.isResizable()
+let winOffset = 180
+if (isLock){
+  winOffset -= 28
+}
+
 let defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let intervalId = null
@@ -62,7 +68,7 @@ let cancelToken = null
 
 // ])
 const tags = ref([]);
-let isLock = !currentWindow.isResizable()
+
 
 currentWindow.on('resize', () => {
   bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
@@ -98,6 +104,8 @@ const sendRequests = () => {
       });
     }, 100);
     inputText.value = "";
+    bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
+    defaultBodyHeight = currentWindow.getSize()[1] - winOffset
   } else {
     ElMessage({
       message: '没输入内容啊',
@@ -287,7 +295,7 @@ onMounted(() => {
       </el-scrollbar>
     </el-col>
   </el-row>
-  <el-footer>
+  <el-footer class="footer">
     <div id="magicInput">
       <div ref="list" class="mTagList" :style="caretPosition" v-show="showList">
         <ul>
@@ -355,6 +363,7 @@ onMounted(() => {
 
 
     </div>
+
   </el-footer>
 </template>
 

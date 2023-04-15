@@ -89,11 +89,21 @@
     background-color: unset;
 }
 
+.footer {
+    display: flex;
+    justify-content: center;
+}
 
-.magicInput {
+/* .magicInput {
     flex-grow: 0;
     height: 50px;
-}
+    
+} */
+#magicInput {
+    position: fixed;
+    bottom: 20px;
+    width: 90%;
+  }
 
 pre {
     padding: 10px;

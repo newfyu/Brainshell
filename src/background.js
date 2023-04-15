@@ -113,7 +113,7 @@ ipcMain.on('render2main', (event, param1) => {
     if (!isLock) { //执行锁定
       const bounds = win.getBounds();
       win.close()
-      createWindow(true, bounds.x, bounds.y + 28, bounds.width, bounds.height, false, false,true)
+      createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height, false, false,true)
       isLock = true
       win.setResizable(false)
       win.once('ready-to-show', () => {
@@ -122,7 +122,7 @@ ipcMain.on('render2main', (event, param1) => {
     } else {
       const bounds = win.getBounds();
       win.close()
-      createWindow(false, bounds.x, bounds.y - 28, bounds.width, bounds.height, true, true, false)
+      createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
       isLock = false
       win.setResizable(true)
       win.once('ready-to-show', () => {
