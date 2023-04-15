@@ -53,6 +53,13 @@ if (isLock){
 
 let defaultBodyHeight = currentWindow.getSize()[1] - winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
+
+const adjustHeight = () => {
+    defaultBodyHeight = currentWindow.getSize()[1] - winOffset
+    bodyHeight = ref(`${defaultBodyHeight}px`)
+}
+
+
 let intervalId = null
 let pageInfo = ref(null)
 let streaming = ref(false)
@@ -71,8 +78,7 @@ const tags = ref([]);
 
 
 currentWindow.on('resize', () => {
-  bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
-  defaultBodyHeight = currentWindow.getSize()[1] - winOffset
+  adjustHeight();
 })
 
 const sendRequests = () => {
@@ -104,8 +110,7 @@ const sendRequests = () => {
       });
     }, 100);
     inputText.value = "";
-    bodyHeight.value = `${currentWindow.getSize()[1] - winOffset}px`
-    defaultBodyHeight = currentWindow.getSize()[1] - winOffset
+    adjustHeight();
   } else {
     ElMessage({
       message: '没输入内容啊',
@@ -140,11 +145,11 @@ const handleInput = (event) => {
   } else {
     showList.value = false;
   }
-
-  setTimeout(() => {
-    const textareaHeight = parseInt(inputRef.value.textarea.style.height)
-    bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
-  }, 50)
+  adjustHeight();
+  // setTimeout(() => {
+  //   const textareaHeight = parseInt(inputRef.value.textarea.style.height)
+  //   bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
+  // }, 50)
 }
 
 const selectItem = (item) => {
@@ -263,8 +268,7 @@ onMounted(() => {
   scrollEnd()
 
   setTimeout(() => {
-    const textareaHeight = parseInt(inputRef.value.textarea.style.height)
-    bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
+    adjustHeight();
   }, 50)
 
 })
