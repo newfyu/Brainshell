@@ -190,7 +190,6 @@ const prevPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
-    console.log(response['data']['data'][0])
     md2html()
     // scrollEnd()
   }).catch(error => {
@@ -251,6 +250,10 @@ const toolbarOnHover = () => {
 const toolbarOnLeave = () => {
   isLoading.value = true
 }
+
+ipcRenderer.on('message-from-main', (event, arg) => {
+  console.log(arg); // 打印从主进程接收到的消息
+});
 
 
 onMounted(() => {
