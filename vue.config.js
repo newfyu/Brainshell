@@ -7,6 +7,14 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: true,
       externals: ['electron-store'],
+      builderOptions: {
+        extraResources: [
+          {
+            from: "/Users/lhan/Projects/BrainDoor/dist/braindoor",
+            to: "braindoor"
+          }
+        ]
+      }
     }
   }
 }

@@ -46,7 +46,7 @@ let showList = ref(false)
 
 let currentWindow = remote.getCurrentWindow();
 let isLock = !currentWindow.isResizable()
-let winOffset = 180
+let winOffset = 170
 if (isLock){
   winOffset -= 28
 }
@@ -253,6 +253,9 @@ const toolbarOnLeave = () => {
 
 ipcRenderer.on('message-from-main', (event, arg) => {
   console.log(arg); // 打印从主进程接收到的消息
+  if (arg === 'blurLongTime'){
+    newPage();
+  }
 });
 
 
@@ -269,8 +272,6 @@ onMounted(() => {
   })
   dragHandle.value = document.getElementById('drag-handle');
   // newPage()
-  scrollEnd()
-
   setTimeout(() => {
     adjustHeight();
   }, 50)

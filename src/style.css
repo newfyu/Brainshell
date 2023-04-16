@@ -67,12 +67,12 @@
     border-radius: 10px;
 }
 .inputAreaContainer:hover{
-    border: 1px solid var(--el-color-primary);
+    border: 2px solid var(--el-color-primary);
     border-radius: 10px;
 }
 
 .InputFocus{
-    border: 1px solid var(--el-color-primary);
+    border: 2px solid var(--el-color-primary);
 }
 
 .el-textarea__inner{

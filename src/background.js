@@ -95,6 +95,8 @@ app.on('ready', async () => {
     win.show();
     braindoorLogToRender();
   })
+
+
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -124,6 +126,14 @@ ipcMain.on('render2main', (event, param1) => {
       win.setResizable(false)
       win.once('ready-to-show', () => {
         win.show()
+      })
+      // Lock模式下失去焦点后隐藏聊天内容
+      win.on('blur', () => {
+        setTimeout(() => {
+          if (!win.isFocused()) {
+            win.webContents.send('message-from-main', 'blurLongTime');
+          }
+        }, 60000);
       })
     } else {
       const bounds = win.getBounds();
@@ -180,8 +190,13 @@ const startBraindoor = () => {
     return;
   }
   let resoursePath = path.join(__dirname, '..');
-  // let braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
-  let braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
+  let braindoorPath = null;
+  if (process.env.NODE_ENV === 'development') {
+    braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
+  } else {
+    braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
+  }
+
   // win.webContents.send('message-from-main', `${braindoorPath}`);
   braindoorProcess = spawn(braindoorPath, { shell: false });
   console.log('Run braindoor.');
@@ -212,3 +227,5 @@ const braindoorLogToRender = () => {
 app.on('quit', () => {
   braindoorProcess.kill();
 });
+
+
