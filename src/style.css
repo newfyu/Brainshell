@@ -77,6 +77,7 @@
 
 .el-textarea__inner{
     box-shadow:unset;
+    transition: height 0.2s ease-in-out;
 }
 .el-textarea__inner:hover{
     box-shadow:unset;

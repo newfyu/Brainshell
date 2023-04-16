@@ -90,10 +90,11 @@ const sendRequests = () => {
     axios.post('http://127.0.0.1:7860/run/ask', {
       data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
-      QAcontext.value = response['data']['data'][0]
-      md2html()
       clearInterval(intervalId); // 停止流式请求
       streaming.value = false
+      inputRef.value.focus()
+      QAcontext.value = response['data']['data'][0]
+      md2html()
     }).catch(error => {
       console.error(error);
     });
@@ -318,9 +319,9 @@ onMounted(() => {
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model.lazy="inputText" @input="handleInput"
-            @keydown.enter.exact.prevent="sendRequests" type="textarea" ref="inputRef" maxlength="1000"
+            @keydown.enter.exact.prevent="sendRequests" type="textarea" ref="inputRef" maxlength="2000"
             placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
-            :autosize="{ minRows: 1, maxRows: 5 }" :disabled="streaming">
+            :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming">
           </el-input>
         </el-row>
 
