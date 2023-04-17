@@ -46,17 +46,19 @@ let showList = ref(false)
 
 let currentWindow = remote.getCurrentWindow();
 let isLock = !currentWindow.isResizable()
-let winOffset = 170
+let winOffset = -28
 if (isLock){
-  winOffset -= 28
+  winOffset = 0
 }
 
-let defaultBodyHeight = currentWindow.getSize()[1] - winOffset
+let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
+console.log(currentWindow.getSize()[1])
+
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 
 const adjustHeight = () => {
-    defaultBodyHeight = currentWindow.getSize()[1] - winOffset
-    bodyHeight = ref(`${defaultBodyHeight}px`)
+    defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
+    bodyHeight.value = `${defaultBodyHeight}px`
 }
 
 
@@ -78,7 +80,7 @@ const tags = ref([]);
 
 
 currentWindow.on('resize', () => {
-  adjustHeight();
+    adjustHeight();
 })
 
 const sendRequests = () => {
@@ -146,7 +148,7 @@ const handleInput = (event) => {
   } else {
     showList.value = false;
   }
-  adjustHeight();
+  // adjustHeight();
   // setTimeout(() => {
   //   const textareaHeight = parseInt(inputRef.value.textarea.style.height)
   //   bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
@@ -268,7 +270,10 @@ const contactBrainoor = () => {
     data: []
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
-    if (!isLock) QAcontext.value = [['已成功连接braindoor，可以对话了','使用说明……']]
+    if (!isLock) {
+      QAcontext.value = [['已成功连接braindoor，可以对话了','使用说明……']];
+      clearInterval(retryId);
+    }
   }).catch(error => {
     console.error(`连接braindoor错误： ${error.message}`);
     retry();
@@ -280,7 +285,7 @@ const retry = () =>{
   retryCount++;
   console.log(`正在进行第 ${retryCount} 次重试`);
   if (retryCount === 60) {
-    console.error('重试次数过多，无法连接braindoor，具体错误请查看日志记录');
+    console.error('无法连接braindoor，打开127.0.0.1:7860查看配置是否正确');
     clearInterval(retryId);
     return;
   }
