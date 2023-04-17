@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
 const { spawn } = require('child_process');
@@ -16,7 +16,7 @@ protocol.registerSchemesAsPrivileged([
 let win = null
 let isLock = false
 let braindoorProcess = null;
-async function createWindow(transparent = isLock, x = 1000, y = 200, w = 400, h = 1000, frame = true, shadow = true, top = false) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
@@ -54,6 +54,31 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 400, h 
     win.loadURL('app://./index.html')
   }
 
+  // win.on('closed', () => {
+  //   win = null
+  // })
+  
+  // 监听窗口关闭事件
+  win.on('close', (event) => {
+    event.preventDefault() // 阻止窗口关闭
+
+    // 弹出提示框
+    const options = {
+      type: 'question',
+      buttons: ['确认', '取消'],
+      defaultId: 0,
+      title: '确认退出',
+      message: '确定要关闭程序吗？',
+      // icon: 'assets/icon.png'
+    }
+
+    dialog.showMessageBox(win, options).then((result) => {
+      if (result.response === 0) {
+        // 如果点击了确认按钮，则关闭窗口
+        win.destroy()
+      }
+    })
+  })
 
 }
 
@@ -61,8 +86,8 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 400, h 
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
+  app.quit()
   if (process.platform !== 'darwin') {
-    braindoorProcess.kill();
     app.quit()
   }
 })
@@ -133,7 +158,7 @@ ipcMain.on('render2main', (event, param1) => {
           if (!win.isFocused()) {
             win.webContents.send('message-from-main', 'blurLongTime');
           }
-        }, 60000);
+        }, 120000);
       })
     } else {
       const bounds = win.getBounds();
@@ -223,6 +248,10 @@ const braindoorLogToRender = () => {
     braindoorProcess = null;
   });
 }
+
+app.on('before-quit', () => {
+  braindoorProcess.kill();
+});
 
 app.on('quit', () => {
   braindoorProcess.kill();
