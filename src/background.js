@@ -59,9 +59,12 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   // })
   
   // 监听窗口关闭事件
-  win.on('close', (event) => {
-    event.preventDefault() // 阻止窗口关闭
+}
 
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+  // On macOS it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
     // 弹出提示框
     const options = {
       type: 'question',
@@ -75,18 +78,11 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     dialog.showMessageBox(win, options).then((result) => {
       if (result.response === 0) {
         // 如果点击了确认按钮，则关闭窗口
-        win.destroy()
+        app.quit()
       }
     })
-  })
 
-}
-
-// Quit when all windows are closed.
-app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  app.quit()
+  
   if (process.platform !== 'darwin') {
     app.quit()
   }
