@@ -66,23 +66,23 @@ app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
     // 弹出提示框
-    const options = {
-      type: 'question',
-      buttons: ['确认', '取消'],
-      defaultId: 0,
-      title: '确认退出',
-      message: '确定要关闭程序吗？',
-      // icon: 'assets/icon.png'
-    }
+    // const options = {
+    //   type: 'question',
+    //   buttons: ['确认', '取消'],
+    //   defaultId: 0,
+    //   title: '确认退出',
+    //   message: '确定要关闭程序吗？',
+    //   // icon: 'assets/icon.png'
+    // }
 
-    dialog.showMessageBox(win, options).then((result) => {
-      if (result.response === 0) {
-        // 如果点击了确认按钮，则关闭窗口
-        app.quit()
-      }
-    })
+    // dialog.showMessageBox(win, options).then((result) => {
+    //   if (result.response === 0) {
+    //     // 如果点击了确认按钮，则关闭窗口
+    //     app.quit()
+    //   }
+    // })
 
-  
+  // app.quit()
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -92,7 +92,14 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  if (BrowserWindow.getAllWindows().length === 0) {
+    
+    createWindow()
+    win.once('ready-to-show', () => {
+      win.show();
+      braindoorLogToRender();
+    })
+  }
 })
 
 // This method will be called when Electron has finished
@@ -149,13 +156,13 @@ ipcMain.on('render2main', (event, param1) => {
         win.show()
       })
       // Lock模式下失去焦点后隐藏聊天内容
-      win.on('blur', () => {
-        setTimeout(() => {
-          if (!win.isFocused()) {
-            win.webContents.send('message-from-main', 'blurLongTime');
-          }
-        }, 120000);
-      })
+      // win.on('blur', () => {
+      //   setTimeout(() => {
+      //     if (!win.isFocused()) {
+      //       win.webContents.send('message-from-main', 'blurLongTime');
+      //     }
+      //   }, 120000);
+      // })
     } else {
       const bounds = win.getBounds();
       win.close()

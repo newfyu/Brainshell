@@ -258,6 +258,35 @@ ipcRenderer.on('message-from-main', (event, arg) => {
   }
 });
 
+let retryId = null; // setInterval 返回的 id
+let retryCount = 0; // 当前已重试的次数
+
+
+// 启动后尝试与braindoor进行连接
+const contactBrainoor = () => {
+  axios.post('http://127.0.0.1:7860/run/new_page', {
+    data: []
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][6]
+    if (!isLock) QAcontext.value = [['已成功连接braindoor，可以对话了','使用说明……']]
+  }).catch(error => {
+    console.error(`连接braindoor错误： ${error.message}`);
+    retry();
+  });
+
+}
+
+const retry = () =>{
+  retryCount++;
+  console.log(`正在进行第 ${retryCount} 次重试`);
+  if (retryCount === 60) {
+    console.error('重试次数过多，无法连接braindoor，具体错误请查看日志记录');
+    clearInterval(retryId);
+    return;
+  }
+  // 按照设定的间隔再次发送请求
+  retryId = setInterval(contactBrainoor, 1000);
+}
 
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -271,7 +300,7 @@ onMounted(() => {
     }
   })
   dragHandle.value = document.getElementById('drag-handle');
-  // newPage()
+  contactBrainoor();
   setTimeout(() => {
     adjustHeight();
   }, 50)
