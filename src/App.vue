@@ -36,7 +36,7 @@ const md2html = () => {
 // md2html()
 
 
-let QAcontext = ref([]);
+let QAcontext = ref([['正在连接braindoor……','']]);
 let scrollbarRef = ref(null);
 let itemList = ref(['Item 1', 'Item 2', 'Item 3'])
 let caretPosition = ref({ left: 0, top: 0 })
@@ -297,6 +297,29 @@ const retry = () =>{
   }, 3000)
 }
 
+function setState(){
+  let rect = currentWindow.getBounds();
+  let obj = {rect}
+  localStorage.setItem('winState', JSON.stringify(obj));
+  console.log(rect)
+}
+
+function getState(){
+  let winState = localStorage.getItem('winState');
+  winState = JSON.parse(winState);
+  currentWindow.setBounds(winState.rect);
+}
+
+function debounce(fn){
+  let timeout = null;
+  return function(){
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      fn.apply(this, arguments);
+    },500);
+  }
+}
+
 onMounted(() => {
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
@@ -308,12 +331,22 @@ onMounted(() => {
       win.setIgnoreMouseEvents(false);
     }
   })
+
+  win.on('move',debounce(()=>{
+    setState();
+  }))
+
+  win.on('resize',debounce(()=>{
+    setState();
+  }))
+
+
   dragHandle.value = document.getElementById('drag-handle');
   contactBrainoor();
   setTimeout(() => {
     adjustHeight();
   }, 50)
-
+  getState();
 })
 
 </script>
