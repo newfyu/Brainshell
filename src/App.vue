@@ -46,18 +46,19 @@ let showList = ref(false)
 
 let currentWindow = remote.getCurrentWindow();
 let isLock = !currentWindow.isResizable()
-let winOffset = -28
+let winOffset = 0
 if (isLock){
-  winOffset = 0
+  winOffset = 30
 }
 
-let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
-console.log(currentWindow.getSize()[1])
+// let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
 
+let defaultBodyHeight = currentWindow.getSize()[1] - 170 + winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 
 const adjustHeight = () => {
-    defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
+    // defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
+    defaultBodyHeight = currentWindow.getSize()[1] - 170 + winOffset
     bodyHeight.value = `${defaultBodyHeight}px`
 }
 
@@ -260,7 +261,7 @@ ipcRenderer.on('message-from-main', (event, arg) => {
   }
 });
 
-let retryId = null; // setInterval 返回的 id
+// let retryId = null; // setInterval 返回的 id
 let retryCount = 0; // 当前已重试的次数
 
 
@@ -271,8 +272,8 @@ const contactBrainoor = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     if (!isLock) {
-      QAcontext.value = [['已成功连接braindoor，可以对话了','使用说明……']];
-      clearInterval(retryId);
+      QAcontext.value = [['已成功连接braindoor，可以对话了','']];
+      // clearInterval(retryId);
     }
   }).catch(error => {
     console.error(`连接braindoor错误： ${error.message}`);
@@ -286,11 +287,14 @@ const retry = () =>{
   console.log(`正在进行第 ${retryCount} 次重试`);
   if (retryCount === 60) {
     console.error('无法连接braindoor，打开127.0.0.1:7860查看配置是否正确');
-    clearInterval(retryId);
+    // clearInterval(retryId);
     return;
   }
   // 按照设定的间隔再次发送请求
-  retryId = setInterval(contactBrainoor, 1000);
+  // retryId = setInterval(contactBrainoor, 3000);
+  setTimeout(() => {
+    contactBrainoor();
+  }, 3000)
 }
 
 onMounted(() => {
