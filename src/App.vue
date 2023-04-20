@@ -35,8 +35,10 @@ const md2html = () => {
 // let QAcontext = ref([[test_q, test_a]]);
 // md2html()
 
+let QAcontext = ref([]);
 
-let QAcontext = ref([['正在连接braindoor……','']]);
+
+
 let scrollbarRef = ref(null);
 let itemList = ref(['Item 1', 'Item 2', 'Item 3'])
 let caretPosition = ref({ left: 0, top: 0 })
@@ -50,7 +52,9 @@ let winOffset = 0
 if (isLock){
   winOffset = 30
 }
-
+if (!isLock){
+  QAcontext.value = [['正在连接braindoor……','']];
+}
 // let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
 
 let defaultBodyHeight = currentWindow.getSize()[1] - 170 + winOffset
@@ -272,7 +276,7 @@ const contactBrainoor = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     if (!isLock) {
-      QAcontext.value = [['已成功连接braindoor，可以对话了','']];
+      QAcontext.value = [['正在连接大脑门……','连接成功，可以对话了。']];
       // clearInterval(retryId);
     }
   }).catch(error => {
@@ -301,7 +305,6 @@ function setState(){
   let rect = currentWindow.getBounds();
   let obj = {rect}
   localStorage.setItem('winState', JSON.stringify(obj));
-  console.log(rect)
 }
 
 function getState(){
