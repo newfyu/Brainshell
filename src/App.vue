@@ -40,30 +40,25 @@ let QAcontext = ref([]);
 
 
 let scrollbarRef = ref(null);
-let itemList = ref(['Item 1', 'Item 2', 'Item 3'])
-let caretPosition = ref({ left: 0, top: 0 })
 let inputText = ref('')
-let inputRef = ref(null)
-let showList = ref(false)
-
 let currentWindow = remote.getCurrentWindow();
 let isLock = !currentWindow.isResizable()
 let winOffset = 0
-if (isLock){
+if (isLock) {
   winOffset = 30
 }
-if (!isLock){
-  QAcontext.value = [['正在连接braindoor……','']];
+if (!isLock) {
+  QAcontext.value = [['正在连接braindoor……', '']];
 }
-// let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
 
-let defaultBodyHeight = currentWindow.getSize()[1] - 170 + winOffset
+// let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1] + 1700) / 12) + winOffset -40
+let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 
 const adjustHeight = () => {
-    // defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1]+1700)/12) + winOffset
-    defaultBodyHeight = currentWindow.getSize()[1] - 170 + winOffset
-    bodyHeight.value = `${defaultBodyHeight}px`
+  // defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1] + 1700) / 12) + winOffset - 40
+  defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset
+  bodyHeight.value = `${defaultBodyHeight}px`
 }
 
 
@@ -74,18 +69,28 @@ let isLoading = ref(true)
 const dragHandle = ref(null);
 let isInputFocus = ref(null)
 let cancelToken = null
-// const tags = ref([
-//   { name: 'Tag 1', type: '' },
-//   { name: 'Tag 2', type: 'success' },
-//   { name: 'Tag 3', type: 'info' },
-//   { name: 'Tag 4', type: 'warning' },
-
-// ])
-const tags = ref([]);
+let tabList = ref([
+  { name: 'Item 1', type: '' },
+  { name: 'Item 2', type: 'success' },
+  { name: 'Item 3', type: 'info' },
+  { name: 'Item 4', type: 'warning' },
+])
+let caretPosition = { left: 0, top: 0 };
+let content = '';
+let listRef = ref(null)
+let inputRef = ref(null)
+let showList = ref(false)
+// let inputTags = ref(['Tag 1', 'Tag 2', 'Tag 3'])
+let inputTags = ref([
+  { name: 'Tag 1', type: '' },
+  { name: 'Tag 2', type: 'success' },
+  { name: 'Tag 3', type: 'info' },
+  { name: 'Tag 4', type: 'warning' },
+])
 
 
 currentWindow.on('resize', () => {
-    adjustHeight();
+  adjustHeight();
 })
 
 const sendRequests = () => {
@@ -134,36 +139,6 @@ const scrollEnd = () => {
   //滚动到底部
 }
 
-
-// 如果要在任意位置识别# 可能要加键盘响应才行
-const handleInput = (event) => {
-  const input = inputRef.value.textarea;
-  const rect = input.getBoundingClientRect(); // 获得绝对坐标
-  const text = event
-  const cursorPos = event.length
-  caretPosition.value = {
-    left: `${rect.x + cursorPos * 8}px`, // TODO 还要考虑换行什么的，要精确计算一下
-    top: `${rect.top - 100}px`,  // TODO 这个100应该是mtagList的高度，mTagList以后要设置一下
-    color: 'red',
-    zIndex: 9999,
-  }
-  // console.log(caretPosition.value.top)
-  if (text[cursorPos - 1] === '#') {
-    showList.value = true;
-  } else {
-    showList.value = false;
-  }
-  // adjustHeight();
-  // setTimeout(() => {
-  //   const textareaHeight = parseInt(inputRef.value.textarea.style.height)
-  //   bodyHeight.value = `${parseInt(defaultBodyHeight) + 52 - textareaHeight}px`
-  // }, 50)
-}
-
-const selectItem = (item) => {
-  inputText.value += item;
-  showList.value = false;
-}
 
 const newPage = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
@@ -260,7 +235,7 @@ const toolbarOnLeave = () => {
 
 ipcRenderer.on('message-from-main', (event, arg) => {
   console.log(arg); // 打印从主进程接收到的消息
-  if (arg === 'blurLongTime'){
+  if (arg === 'blurLongTime') {
     newPage();
   }
 });
@@ -276,7 +251,7 @@ const contactBrainoor = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……','连接成功，可以对话了。']];
+      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了。']];
       // clearInterval(retryId);
     }
   }).catch(error => {
@@ -286,7 +261,7 @@ const contactBrainoor = () => {
 
 }
 
-const retry = () =>{
+const retry = () => {
   retryCount++;
   console.log(`正在进行第 ${retryCount} 次重试`);
   if (retryCount === 60) {
@@ -301,27 +276,128 @@ const retry = () =>{
   }, 3000)
 }
 
-function setState(){
+function setState() {
   let rect = currentWindow.getBounds();
-  let obj = {rect}
+  let obj = { rect }
   localStorage.setItem('winState', JSON.stringify(obj));
 }
 
-function getState(){
+function getState() {
   let winState = localStorage.getItem('winState');
   winState = JSON.parse(winState);
   currentWindow.setBounds(winState.rect);
 }
 
-function debounce(fn){
+function debounce(fn) {
   let timeout = null;
-  return function(){
+  return function () {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       fn.apply(this, arguments);
-    },500);
+    }, 500);
   }
 }
+
+// mtags
+
+const handleInput = (event) => {
+  console.log(event)
+  // if (event.charAt(event.length - 1) === '/') {
+  //   caretPosition = {
+  //     left: `0px`, // 还要考虑换行什么的
+  //     bottom: '200px',
+  //     color: 'gray',
+  //     zIndex: 9999,
+  //     display: "flex"
+  //   }
+  //   showList.value = true;
+
+
+  // } else {
+  //   caretPosition = {
+  //     display: "none"
+  //   }
+  //   showList.value = false;
+  // }
+
+}
+
+
+const handleTagClose = (tag) => {
+  inputTags.value.splice(inputTags.value.indexOf(tag), 1)
+}
+
+function selectItem(item) {
+  // inputRef.value.focus(); // return focus to input area
+  inputTags.value.push({name:item,type:""})
+  content = content.slice(0, -1);
+}
+
+function cancel() {
+  caretPosition = {
+    display: "none"
+  }
+  showList.value = false;
+  content = content.slice(0, -1);
+}
+
+function onKeyDown(event) {
+  const key = event.key;
+  if (showList.value){
+    if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
+    event.preventDefault(); // prevent scrolling
+    const itemList = listRef.value.querySelectorAll('li');
+    let selectedIndex = -1;
+    for (let i = 0; i < itemList.length; i++) {
+      if (itemList[i].classList.contains('selected')) {
+        selectedIndex = i;
+        break;
+      }
+    }
+    if (key === 'ArrowUp' && selectedIndex > 0) {
+      itemList[selectedIndex].classList.remove('selected');
+      itemList[selectedIndex - 1].classList.add('selected');
+    } else if (key === 'ArrowDown' && selectedIndex < itemList.length - 1) {
+      if (selectedIndex >= 0) {
+        itemList[selectedIndex].classList.remove('selected');
+      }
+      itemList[selectedIndex + 1].classList.add('selected');
+    }
+    if (key === 'Enter') {
+    event.preventDefault()
+    const itemList = listRef.value.querySelectorAll('li');
+    for (let i = 0; i < itemList.length; i++) {
+      if (itemList[i].classList.contains('selected')) {
+        selectItem(itemList[i].textContent);
+        break;
+      }
+      
+      setTimeout(()=>{
+        caretPosition = { display: "none"}
+        showList.value = false;},50)  
+    }
+  } 
+  } else {
+    cancel()
+  }   
+  
+
+  } else { // 输入文字模式
+    if (key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    sendRequests()
+  }
+    if (key === '/'){
+    caretPosition = {
+      display: "flex"
+    }
+    showList.value = true;
+  } 
+
+  }
+  
+}
+
 
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -335,14 +411,13 @@ onMounted(() => {
     }
   })
 
-  win.on('move',debounce(()=>{
+  win.on('move', debounce(() => {
     setState();
   }))
 
-  win.on('resize',debounce(()=>{
+  win.on('resize', debounce(() => {
     setState();
   }))
-
 
   dragHandle.value = document.getElementById('drag-handle');
   contactBrainoor();
@@ -378,28 +453,28 @@ onMounted(() => {
       </el-scrollbar>
     </el-col>
   </el-row>
+
+
   <el-footer class="footer">
     <div id="magicInput">
-      <div ref="list" class="mTagList" :style="caretPosition" v-show="showList">
+      <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
-          <li v-for="(item, index) in itemList" :key="index" @click="selectItem(item)">
-            {{ item }}
+          <li v-for="(item, index) in tabList" :key="index" @click="selectItem(item)">
+            {{ item.name }}
           </li>
         </ul>
       </div>
 
-      <el-tag v-for="tag in tags" :key="tag.name" class="mx-1" closable :type="tag.type" round=true effect="dark"
-        size="small">
+      <el-tag v-for="tag in inputTags" :key="tag" class="magicTags" closable round size="small" :type="tag.type"
+        :disable-transitions="true" @close="handleTagClose(tag)">
         {{ tag.name }}
       </el-tag>
-
       <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
-          <el-input id="textArea" v-model.lazy="inputText" @input="handleInput"
-            @keydown.enter.exact.prevent="sendRequests" type="textarea" ref="inputRef" maxlength="2000"
-            placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
-            :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming">
+          <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" type="textarea" ref="inputRef"
+            maxlength="2000" placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+            :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
 
@@ -409,10 +484,10 @@ onMounted(() => {
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
 
               <!-- <el-tooltip content="新建对话页面" placement="top" effect="light"> -->
-                <Transition name="fade">
-                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
-                    v-show="!streaming" />
-                </Transition>
+              <Transition name="fade">
+                <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
+                  v-show="!streaming" />
+              </Transition>
               <!-- </el-tooltip> -->
 
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
@@ -424,10 +499,9 @@ onMounted(() => {
                 </template>
               </el-popconfirm>
               <!-- <el-tooltip content="锁定窗口" placement="top" effect="light"> -->
-                <Transition name="fade">
-                  <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
-                    v-show="!streaming" />
-                </Transition>
+              <Transition name="fade">
+                <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
+              </Transition>
               <!-- </el-tooltip> -->
               <Transition name="fade">
                 <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"

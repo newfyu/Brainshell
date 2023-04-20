@@ -31,6 +31,7 @@
 .QA {
     text-align: right;
 }
+
 .mTagList {
     position: absolute;
     background-color: white;
@@ -40,50 +41,54 @@
 }
 
 
-#textArea { 
+#textArea {
     border-radius: 10px 10px 0 0;
     /* border:2px solid white; */
-} 
+}
 
 
 .toolbar {
     padding: 0px 0px;
 }
 
-.el-textarea__inner{
-    box-shadow:unset;
+.el-textarea__inner {
+    box-shadow: unset;
     padding: 10px;
 }
+
 .toolbar-inner {
     width: 100%;
     background-color: white;
     display: flex;
-    border-radius:0 0 10px 10px;
-    padding: 5px; 
+    border-radius: 0 0 10px 10px;
+    padding: 5px;
 }
 
-.inputAreaContainer{
+.inputAreaContainer {
     border: 1px solid var(--el-border-color-darker);
     border-radius: 10px;
 }
-.inputAreaContainer:hover{
+
+.inputAreaContainer:hover {
     border: 2px solid var(--el-color-primary);
     border-radius: 10px;
 }
 
-.InputFocus{
+.InputFocus {
     border: 2px solid var(--el-color-primary);
 }
 
-.el-textarea__inner{
-    box-shadow:unset;
+.el-textarea__inner {
+    box-shadow: unset;
     transition: height 0.2s ease-in-out;
 }
-.el-textarea__inner:hover{
-    box-shadow:unset;
+
+.el-textarea__inner:hover {
+    box-shadow: unset;
 }
-.el-textarea__inner:focus{
-    box-shadow:unset;
+
+.el-textarea__inner:focus {
+    box-shadow: unset;
 }
 
 .el-button.is-text:not(.is-disabled).is-has-bg {
@@ -104,7 +109,7 @@
     position: fixed;
     bottom: 20px;
     width: 90%;
-  }
+}
 
 pre {
     padding: 10px;
@@ -134,46 +139,72 @@ pre {
 .fade-move,
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 /* 2. 声明进入和离开的状态 */
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
-  transform: scaleY(0.01) translate(30px, 0);
+    opacity: 0;
+    transform: scaleY(0.01) translate(30px, 0);
 }
 
 /* 3. 确保离开的项目被移除出了布局流
       以便正确地计算移动时的动画效果。 */
 .fade-leave-active {
-  position: absolute;
+    position: absolute;
 }
 
 .right-align {
     text-align: right;
     margin: auto;
-  }
+}
 
 
 .slide-move,
 .slide-enter-active,
 .slide-leave-active {
-transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 .slide-enter-from,
 .slide-leave-to {
-opacity: 0;
-transform: translateY(50px);
+    opacity: 0;
+    transform: translateY(50px);
 }
 
 .slide-leave-active {
-position: absolute;
+    position: absolute;
 }
 
 /* 假设你想要上下平移的元素在向上滑动时在底部对齐 */
 .bottom-align {
-position: absolute;
-bottom: 0;
+    position: absolute;
+    bottom: 0;
 }
+
+.popList {
+    /* position: absolute; */
+    background-color: white;
+    border: 1px solid gray;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px;
+}
+
+.popList li.selected {
+    background-color: #ccc;
+}
+
+
+
+.magicTags {
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+  }
