@@ -329,8 +329,13 @@ const handleTagClose = (tag) => {
 
 function selectItem(item) {
   // inputRef.value.focus(); // return focus to input area
-  inputTags.value.push({name:item,type:""})
-  content = content.slice(0, -1);
+  const textarea = inputRef.value.textarea
+  const position = inputRef.value.textarea.selectionEnd
+  inputTags.value.push({ name: item, type: "" })
+  let text = textarea.value;
+  textarea.value = text.substring(0, position - 1) + text.substring(position);
+  textarea.selectionStart = position - 1;
+  textarea.selectionEnd =  position - 1;
 }
 
 function cancel() {
@@ -343,59 +348,59 @@ function cancel() {
 
 function onKeyDown(event) {
   const key = event.key;
-  if (showList.value){
+  if (showList.value) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
-    event.preventDefault(); // prevent scrolling
-    const itemList = listRef.value.querySelectorAll('li');
-    let selectedIndex = -1;
-    for (let i = 0; i < itemList.length; i++) {
-      if (itemList[i].classList.contains('selected')) {
-        selectedIndex = i;
-        break;
+      event.preventDefault(); // prevent scrolling
+      const itemList = listRef.value.querySelectorAll('li');
+      let selectedIndex = -1;
+      for (let i = 0; i < itemList.length; i++) {
+        if (itemList[i].classList.contains('selected')) {
+          selectedIndex = i;
+          break;
+        }
       }
-    }
-    if (key === 'ArrowUp' && selectedIndex > 0) {
-      itemList[selectedIndex].classList.remove('selected');
-      itemList[selectedIndex - 1].classList.add('selected');
-    } else if (key === 'ArrowDown' && selectedIndex < itemList.length - 1) {
-      if (selectedIndex >= 0) {
+      if (key === 'ArrowUp' && selectedIndex > 0) {
         itemList[selectedIndex].classList.remove('selected');
+        itemList[selectedIndex - 1].classList.add('selected');
+      } else if (key === 'ArrowDown' && selectedIndex < itemList.length - 1) {
+        if (selectedIndex >= 0) {
+          itemList[selectedIndex].classList.remove('selected');
+        }
+        itemList[selectedIndex + 1].classList.add('selected');
       }
-      itemList[selectedIndex + 1].classList.add('selected');
-    }
-    if (key === 'Enter') {
-    event.preventDefault()
-    const itemList = listRef.value.querySelectorAll('li');
-    for (let i = 0; i < itemList.length; i++) {
-      if (itemList[i].classList.contains('selected')) {
-        selectItem(itemList[i].textContent);
-        break;
+      if (key === 'Enter') {
+        event.preventDefault()
+        const itemList = listRef.value.querySelectorAll('li');
+        for (let i = 0; i < itemList.length; i++) {
+          if (itemList[i].classList.contains('selected')) {
+            selectItem(itemList[i].textContent);
+            break;
+          }
+        }
+        setTimeout(() => {
+            caretPosition = { display: "none" }
+            showList.value = false;
+          }, 50)
       }
-      
-      setTimeout(()=>{
-        caretPosition = { display: "none"}
-        showList.value = false;},50)  
+    } else {
+      cancel()
     }
-  } 
-  } else {
-    cancel()
-  }   
-  
+
 
   } else { // 输入文字模式
     if (key === 'Enter' && !event.shiftKey) {
-    event.preventDefault()
-    sendRequests()
-  }
-    if (key === '/'){
-    caretPosition = {
-      display: "flex"
+      event.preventDefault()
+      sendRequests()
     }
-    showList.value = true;
-  } 
+    if (key === '/') {
+      caretPosition = {
+        display: "flex"
+      }
+      showList.value = true;
+    }
 
   }
-  
+
 }
 
 
