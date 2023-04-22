@@ -219,16 +219,15 @@ const startBraindoor = () => {
   }
   let resoursePath = path.join(__dirname, '..');
   let braindoorPath = null;
+  let workPath = path.join(resoursePath, 'braindoor');
   if (process.env.NODE_ENV === 'development') {
     braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
   } else {
     braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
   }
 
-  // win.webContents.send('message-from-main', `${braindoorPath}`);
-  braindoorProcess = spawn(braindoorPath, { shell: false });
+  braindoorProcess = spawn(braindoorPath, { shell: false, cwd: workPath});
   console.log('Run braindoor.');
-
 };
 
 const braindoorLogToRender = () => {
