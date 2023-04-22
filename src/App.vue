@@ -64,8 +64,6 @@ const adjustHeight = () => {
 }
 
 
-
-
 let intervalId = null
 let pageInfo = ref(null)
 let streaming = ref(false)
@@ -75,7 +73,7 @@ let isInputFocus = ref(null)
 let cancelToken = null
 const tagColor = {
   base: 'warning',
-  prompt: 'info',
+  prompt: 'primar',
   option: 'success',
   agent: 'danger'
 }
@@ -90,13 +88,6 @@ let content = '';
 let listRef = ref(null)
 let inputRef = ref(null)
 let showList = ref(false)
-// let inputTags = ref([
-//   { name: 'Tag 1', type: '',  color:tagColor['base'] },
-//   { name: 'Tag 2', type: 'success', color:tagColor['info'] },
-//   { name: 'Tag 3', type: 'info', color:tagColor['agent'] },
-//   { name: 'Tag 4', type: 'warning', color:tagColor['option'] },
-// ])
-
 let inputTags = ref([])
 
 
@@ -112,6 +103,8 @@ const sendRequests = () => {
   if (question) {
     streaming.value = true
     cancelToken = axios.CancelToken.source()
+    const tagStr = tag2str()
+    question = question + tagStr
     axios.post('http://127.0.0.1:7860/run/ask', {
       data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
@@ -263,8 +256,10 @@ const contactBrainoor = () => {
     data: []
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
+    const arr = response['data']['data'][7]['data']
+    tabList.value = arr.map(([name, type]) => ({ name, type }));
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了。']];
+      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:10px;margin-bottom:10px">连接成功,可以对话了。</div>']];
       // clearInterval(retryId);
     }
   }).catch(error => {
@@ -311,28 +306,10 @@ function debounce(fn) {
   }
 }
 
-// mtags
+
 
 const handleInput = () => {
-  console.log(tagBoxRef.value.getBoundingClientRect().height)
-  // if (event.charAt(event.length - 1) === '/') {
-  //   caretPosition = {
-  //     left: `0px`, // 还要考虑换行什么的
-  //     bottom: '200px',
-  //     color: 'gray',
-  //     zIndex: 9999,
-  //     display: "flex"
-  //   }
-  //   showList.value = true;
-
-
-  // } else {
-  //   caretPosition = {
-  //     display: "none"
-  //   }
-  //   showList.value = false;
-  // }
-
+  // console.log(tagBoxRef.value.getBoundingClientRect().height)
 }
 
 
@@ -341,6 +318,18 @@ const handleTagClose = (tag) => {
   setTimeout(() => {
     adjustHeight()
   }, 50)
+}
+
+function tag2str() {
+  if (inputTags.value) {
+    let tagStrings = inputTags.value.map(tag => '#' + tag.name);
+    let result = tagStrings.join(' '); 
+    result = "\n " + result
+    return result;
+  } else {
+    return ''
+  }
+
 }
 
 function selectItem(item) {
@@ -353,6 +342,7 @@ function selectItem(item) {
   textarea.value = text.substring(0, position - 1) + text.substring(position);
   textarea.selectionStart = position - 1;
   textarea.selectionEnd = position - 1;
+
   setTimeout(() => {
     adjustHeight()
   }, 50)
