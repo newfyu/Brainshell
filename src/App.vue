@@ -36,11 +36,9 @@ const md2html = () => {
 // md2html()
 
 let QAcontext = ref([]);
-
-
-
 let scrollbarRef = ref(null);
 let inputText = ref('')
+let tagBoxRef = ref(null)
 let currentWindow = remote.getCurrentWindow();
 let isLock = !currentWindow.isResizable()
 let winOffset = 0
@@ -56,10 +54,16 @@ let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 
 const adjustHeight = () => {
+  let tagHeight = 0
+  if (tagBoxRef.value || tagBoxRef.value.getBoundingClientRect().height != 0) {
+    tagHeight = tagBoxRef.value.getBoundingClientRect().height - 20
+  }
   // defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1] + 1700) / 12) + winOffset - 40
-  defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset
+  defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset - tagHeight
   bodyHeight.value = `${defaultBodyHeight}px`
 }
+
+
 
 
 let intervalId = null
@@ -69,29 +73,38 @@ let isLoading = ref(true)
 const dragHandle = ref(null);
 let isInputFocus = ref(null)
 let cancelToken = null
+const tagColor = {
+  base: 'warning',
+  prompt: 'info',
+  option: 'success',
+  agent: 'danger'
+}
 let tabList = ref([
-  { name: 'Item 1', type: '' },
-  { name: 'Item 2', type: 'success' },
-  { name: 'Item 3', type: 'info' },
-  { name: 'Item 4', type: 'warning' },
+  { name: 'Item 1', type: 'base' },
+  { name: '翻译', type: 'prompt' },
+  { name: 'Item 3', type: 'agent' },
+  { name: 'Item 4', type: 'option' },
 ])
 let caretPosition = { left: 0, top: 0 };
 let content = '';
 let listRef = ref(null)
 let inputRef = ref(null)
 let showList = ref(false)
-// let inputTags = ref(['Tag 1', 'Tag 2', 'Tag 3'])
-let inputTags = ref([
-  { name: 'Tag 1', type: '' },
-  { name: 'Tag 2', type: 'success' },
-  { name: 'Tag 3', type: 'info' },
-  { name: 'Tag 4', type: 'warning' },
-])
+// let inputTags = ref([
+//   { name: 'Tag 1', type: '',  color:tagColor['base'] },
+//   { name: 'Tag 2', type: 'success', color:tagColor['info'] },
+//   { name: 'Tag 3', type: 'info', color:tagColor['agent'] },
+//   { name: 'Tag 4', type: 'warning', color:tagColor['option'] },
+// ])
+
+let inputTags = ref([])
+
 
 
 currentWindow.on('resize', () => {
   adjustHeight();
 })
+
 
 const sendRequests = () => {
   // 发送总请求
@@ -300,8 +313,8 @@ function debounce(fn) {
 
 // mtags
 
-const handleInput = (event) => {
-  console.log(event)
+const handleInput = () => {
+  console.log(tagBoxRef.value.getBoundingClientRect().height)
   // if (event.charAt(event.length - 1) === '/') {
   //   caretPosition = {
   //     left: `0px`, // 还要考虑换行什么的
@@ -325,17 +338,24 @@ const handleInput = (event) => {
 
 const handleTagClose = (tag) => {
   inputTags.value.splice(inputTags.value.indexOf(tag), 1)
+  setTimeout(() => {
+    adjustHeight()
+  }, 50)
 }
 
 function selectItem(item) {
   // inputRef.value.focus(); // return focus to input area
   const textarea = inputRef.value.textarea
   const position = inputRef.value.textarea.selectionEnd
-  inputTags.value.push({ name: item, type: "" })
+  inputTags.value.push({ name: item.name, type: item.type, color: tagColor[item.type] })
+
   let text = textarea.value;
   textarea.value = text.substring(0, position - 1) + text.substring(position);
   textarea.selectionStart = position - 1;
-  textarea.selectionEnd =  position - 1;
+  textarea.selectionEnd = position - 1;
+  setTimeout(() => {
+    adjustHeight()
+  }, 50)
 }
 
 function cancel() {
@@ -373,20 +393,18 @@ function onKeyDown(event) {
         const itemList = listRef.value.querySelectorAll('li');
         for (let i = 0; i < itemList.length; i++) {
           if (itemList[i].classList.contains('selected')) {
-            selectItem(itemList[i].textContent);
+            selectItem(tabList.value[i]);
             break;
           }
         }
         setTimeout(() => {
-            caretPosition = { display: "none" }
-            showList.value = false;
-          }, 50)
+          caretPosition = { display: "none" }
+          showList.value = false;
+        }, 50)
       }
     } else {
       cancel()
     }
-
-
   } else { // 输入文字模式
     if (key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
@@ -398,9 +416,7 @@ function onKeyDown(event) {
       }
       showList.value = true;
     }
-
   }
-
 }
 
 
@@ -469,11 +485,12 @@ onMounted(() => {
           </li>
         </ul>
       </div>
-
-      <el-tag v-for="tag in inputTags" :key="tag" class="magicTags" closable round size="small" :type="tag.type"
-        :disable-transitions="true" @close="handleTagClose(tag)">
-        {{ tag.name }}
-      </el-tag>
+      <div class="tagBox" ref="tagBoxRef">
+        <el-tag v-for="tag in inputTags" :key="tag" class="magicTags" closable round size="small" :type="tag.color"
+          effect="dark" :disable-transitions="true" @close="handleTagClose(tag)">
+          {{ tag.name }}
+        </el-tag>
+      </div>
       <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
