@@ -111,8 +111,10 @@ const sendRequests = () => {
       clearInterval(intervalId); // 停止流式请求
       streaming.value = false
       inputRef.value.focus()
-      QAcontext.value = response['data']['data'][0]
-      md2html()
+      setTimeout(() => {
+        QAcontext.value = response['data']['data'][0]
+        md2html()
+      }, 100);
     }).catch(error => {
       console.error(error);
     });
@@ -258,8 +260,16 @@ const contactBrainoor = () => {
     pageInfo.value = response['data']['data'][6]
     const arr = response['data']['data'][7]['data']
     tabList.value = arr.map(([name, type]) => ({ name, type }));
+
+    tabList.value = tabList.value.map(item => {
+      return {
+        ...item, color: tagColor[item.type] || ''
+      }
+    })
+
+
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:7px;margin-bottom:7px">连接成功,可以对话了。</div>']];
+      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:8px;margin-bottom:8px">连接成功,可以对话了。</div>']];
       // clearInterval(retryId);
     }
   }).catch(error => {
@@ -321,9 +331,9 @@ const handleTagClose = (tag) => {
 }
 
 function tag2str() {
-  if (inputTags.value) {
+  if (inputTags.value.length > 0) {
     let tagStrings = inputTags.value.map(tag => '#' + tag.name);
-    let result = tagStrings.join(' '); 
+    let result = tagStrings.join(' ');
     result = "\n " + result
     return result;
   } else {
@@ -392,9 +402,9 @@ function onKeyDown(event) {
           showList.value = false;
         }, 50)
       }
-    } else {
+    } else if (key === 'Escape') {
       cancel()
-    }
+    } // 最后else,输入其他数字的时候，在tablist中查询
   } else { // 输入文字模式
     if (key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
@@ -471,12 +481,12 @@ onMounted(() => {
       <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
           <li v-for="(item, index) in tabList" :key="index" @click="selectItem(item)">
-            {{ item.name }}
+            <el-text :type="item.color">{{ item.name }}</el-text>
           </li>
         </ul>
       </div>
       <div class="tagBox" ref="tagBoxRef">
-        <el-tag v-for="tag in inputTags" :key="tag" class="magicTags" closable round size="small" :type="tag.color"
+        <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
           effect="dark" :disable-transitions="true" @close="handleTagClose(tag)">
           {{ tag.name }}
         </el-tag>
