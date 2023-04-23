@@ -259,7 +259,7 @@ const contactBrainoor = () => {
     const arr = response['data']['data'][7]['data']
     tabList.value = arr.map(([name, type]) => ({ name, type }));
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:10px;margin-bottom:10px">连接成功,可以对话了。</div>']];
+      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:7px;margin-bottom:7px">连接成功,可以对话了。</div>']];
       // clearInterval(retryId);
     }
   }).catch(error => {

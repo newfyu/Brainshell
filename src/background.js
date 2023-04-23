@@ -222,11 +222,11 @@ const startBraindoor = () => {
   let workPath = path.join(resoursePath, 'braindoor');
   if (process.env.NODE_ENV === 'development') {
     braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
+    braindoorProcess = spawn(braindoorPath, {shell : false});
   } else {
     braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
+    braindoorProcess = spawn(braindoorPath, {shell : false, cwd: workPath});
   }
-
-  braindoorProcess = spawn(braindoorPath, { shell: false, cwd: workPath});
   console.log('Run braindoor.');
 };
 
