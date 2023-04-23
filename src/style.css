@@ -191,6 +191,7 @@ pre {
     border: 1px solid gray;
     max-height: 150px;
     overflow-y: auto;
+    border-radius: 10px;
 }
 
 ul {
