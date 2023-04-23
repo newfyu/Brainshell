@@ -21,6 +21,7 @@
     "highlight.js": "^11.7.0",
     "highlightjs-copy": "^1.0.3",
     "markdown-it": "^13.0.1",
+    "pinyin": "^3.0.0-alpha.4",
     "vue": "^3.2.13",
     "vue-axios": "^3.5.2"
   },

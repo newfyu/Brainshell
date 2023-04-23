@@ -210,4 +210,19 @@ ul {
     margin-right: 5px;
     margin-left: 5px;
     margin-bottom: 5px;
+}
+
+.tag_name {
+    flex: 1;
+}
+
+.tag_abbr {
+    flex: 1;
+    text-align: right;
+}
+
+.tab-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }

@@ -6,7 +6,8 @@ import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
-import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus';
+import pinyin from "pinyin";
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -73,7 +74,7 @@ let isInputFocus = ref(null)
 let cancelToken = null
 const tagColor = {
   base: 'warning',
-  prompt: 'primar',
+  prompt: 'primary',
   option: 'success',
   agent: 'danger'
 }
@@ -263,7 +264,7 @@ const contactBrainoor = () => {
 
     tabList.value = tabList.value.map(item => {
       return {
-        ...item, color: tagColor[item.type] || ''
+        ...item, color: tagColor[item.type], abbr: '/' + textAbbr(item.name)
       }
     })
 
@@ -419,6 +420,18 @@ function onKeyDown(event) {
   }
 }
 
+// 把输入的文字转换成拼音首字母缩写
+function textAbbr(text) {
+  const pinyinArr = pinyin(text, {
+    style: pinyin.STYLE_FIRST_LETTER
+  });
+  let result = pinyinArr.join('');
+  if (result.length > 4) {
+    result = result.slice(0, 4);
+  }
+  return result;
+}
+
 
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -480,8 +493,10 @@ onMounted(() => {
     <div id="magicInput">
       <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
-          <li v-for="(item, index) in tabList" :key="index" @click="selectItem(item)">
-            <el-text :type="item.color">{{ item.name }}</el-text>
+          <li v-for="(item, index) in tabList" :key="index" @click="selectItem(item)" class="tab-item">
+            <el-text :type="item.color">
+              {{ item.abbr }}  {{ item.name }} ({{ item.type }})
+            </el-text>
           </li>
         </ul>
       </div>
