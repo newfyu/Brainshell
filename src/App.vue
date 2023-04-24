@@ -28,21 +28,13 @@ const md2html = () => {
 }
 
 
-// let test_q = '<a href="file/temp/reference-1.txt" class="asklink" title="Open text snippet 0.218">[1] </a> 写一个vue的<script setup>示例,沙发上地方暗示法发啥呆发啥发水电费安抚沙发舒服asdf阿四饭店啥'
-// let test_a = '好的    \n这里是一个简单的Python类\n> 它只有一个属性和一个方法来设置和打印\n> 该属性值:\n\n```python\nclass Person:\n    def __init__(self, name):\n        self.name = name\n    \n    def say_hello(self):\n        print(f"Hello, my name is {self.name}")\n```\n\n在这个例子中,我们定义了一个`Person`类,它具有一个`__init__`方法来设置`name`属性,以及一个`say_hello`方法来打印出该属性的值。\n\n我们可以使用以下代码创建一个`Person`对象,并使用`say_hello`方法打印出其名称:\n\n```python\nperson = Person("Alice")\nperson.say_hello()\n```\n\n这将产生以下输出:\n\n```\nHello, my name is Alice\n```\n\n'
-// console.log(test_a)
-// test_a = md.render(test_a);
-// console.log(test_a)
-// let QAcontext = ref([[test_q, test_a]]);
-// md2html()
-
-let QAcontext = ref([]);
-let scrollbarRef = ref(null);
-let inputText = ref('')
-let tagBoxRef = ref(null)
-let currentWindow = remote.getCurrentWindow();
-let isLock = !currentWindow.isResizable()
-let winOffset = 0
+let QAcontext = ref([]); // 所有的问答对历史
+let scrollbarRef = ref(null); // 滚动条的ref，控制滚动
+let inputText = ref('')  // 主输入框的内容
+let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
+let currentWindow = remote.getCurrentWindow(); // 当前窗口
+let isLock = !currentWindow.isResizable() // 是否锁定窗口
+let winOffset = 0 // 窗口偏移量，用于微调一些组件的位置
 if (isLock) {
   winOffset = 30
 }
@@ -51,8 +43,9 @@ if (!isLock) {
 }
 
 // let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1] + 1700) / 12) + winOffset -40
-let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset
+let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset // 默认的聊天显示框高度
 let bodyHeight = ref(`${defaultBodyHeight}px`)
+let retryCount = 0; // 当前已重试的次数
 
 const adjustHeight = () => {
   let tagHeight = 0
@@ -64,15 +57,14 @@ const adjustHeight = () => {
   bodyHeight.value = `${defaultBodyHeight}px`
 }
 
-
-let intervalId = null
-let pageInfo = ref(null)
-let streaming = ref(false)
-let isLoading = ref(true)
-const dragHandle = ref(null);
+let intervalId = null // 流式请求的定时器id
+let pageInfo = ref(null) // 页码信息
+let streaming = ref(false) // 是否正在流式请求
+let isLoading = ref(true) // 是否正在加载，控制是否可以输入和使用工具按钮
+const dragHandle = ref(null); // 拖动窗口的句柄
 let isInputFocus = ref(null)
 let cancelToken = null
-const tagColor = {
+const tagColor = { // 根据etag的类型设定标签颜色
   base: 'warning',
   prompt: 'primary',
   option: 'success',
@@ -97,7 +89,7 @@ currentWindow.on('resize', () => {
   adjustHeight();
 })
 
-
+// 提交text
 const sendRequests = () => {
   // 发送总请求
   let question = inputText.value
@@ -141,6 +133,7 @@ const sendRequests = () => {
   }
 }
 
+// 滚动到底部
 const scrollEnd = () => {
   setTimeout(() => {
     scrollbarRef.value.setScrollTop(9999)
@@ -148,7 +141,7 @@ const scrollEnd = () => {
   //滚动到底部
 }
 
-
+// 新建页面
 const newPage = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
     data: []
@@ -162,6 +155,7 @@ const newPage = () => {
   QAcontext.value = ""
 }
 
+// 按下下一页按钮时，获取下一页的内容
 const nextPage = () => {
   axios.post('http://127.0.0.1:7860/run/next_page', {
     data: []
@@ -175,6 +169,7 @@ const nextPage = () => {
   });
 }
 
+// 按下前一页按钮时，获取上一页的内容
 const prevPage = () => {
   axios.post('http://127.0.0.1:7860/run/prev_page', {
     data: []
@@ -188,6 +183,7 @@ const prevPage = () => {
   });
 }
 
+// 删除当前对话页面
 const delPage = () => {
   axios.post('http://127.0.0.1:7860/run/del_page', {
     data: []
@@ -201,6 +197,7 @@ const delPage = () => {
   });
 }
 
+// 强行中断请求
 const stopRequest = () => {
   axios.post('http://127.0.0.1:7860/run/stop', {
     data: []
@@ -216,7 +213,7 @@ const stopRequest = () => {
   }
 }
 
-
+// locak模式切换，向主进程发送消息，主进程收到消息后重载窗口
 const lock = () => {
   if (isLock) {
     isLock = false;
@@ -226,6 +223,8 @@ const lock = () => {
   }
   ipcRenderer.send("render2main", "reloadWindow");
 }
+
+
 const textAreaFocus = () => {
   isInputFocus.value = true
 }
@@ -242,16 +241,13 @@ const toolbarOnLeave = () => {
   isLoading.value = true
 }
 
+// 监听主进程发送的消息,一定时间内没有输入则触发隐藏，目前作废
 ipcRenderer.on('message-from-main', (event, arg) => {
   console.log(arg); // 打印从主进程接收到的消息
   if (arg === 'blurLongTime') {
     newPage();
   }
 });
-
-// let retryId = null; // setInterval 返回的 id
-let retryCount = 0; // 当前已重试的次数
-
 
 // 启动后尝试与braindoor进行连接
 const contactBrainoor = () => {
@@ -280,6 +276,7 @@ const contactBrainoor = () => {
 
 }
 
+// 重试函数,用于contactBrainoor失败时重试
 const retry = () => {
   retryCount++;
   console.log(`正在进行第 ${retryCount} 次重试`);
@@ -295,18 +292,21 @@ const retry = () => {
   }, 3000)
 }
 
+// 储存窗口状态
 function setState() {
   let rect = currentWindow.getBounds();
   let obj = { rect }
   localStorage.setItem('winState', JSON.stringify(obj));
 }
 
+// 获得储存的窗口状态
 function getState() {
   let winState = localStorage.getItem('winState');
   winState = JSON.parse(winState);
   currentWindow.setBounds(winState.rect);
 }
 
+// 防抖函数
 function debounce(fn) {
   let timeout = null;
   return function () {
@@ -317,13 +317,11 @@ function debounce(fn) {
   }
 }
 
-
-
 const handleInput = () => {
   // console.log(tagBoxRef.value.getBoundingClientRect().height)
 }
 
-
+// 删除已经选择的etag
 const handleTagClose = (tag) => {
   inputTags.value.splice(inputTags.value.indexOf(tag), 1)
   setTimeout(() => {
@@ -331,6 +329,7 @@ const handleTagClose = (tag) => {
   }, 50)
 }
 
+// 生成tag字符串,加入到输入框中，发送给braindoor
 function tag2str() {
   if (inputTags.value.length > 0) {
     let tagStrings = inputTags.value.map(tag => '#' + tag.name);
@@ -342,6 +341,7 @@ function tag2str() {
   }
 }
 
+// 选择etag列表中的条目
 function selectItem(item) {
   const textarea = inputRef.value.textarea
   const position = inputRef.value.textarea.selectionEnd
@@ -363,6 +363,7 @@ function selectItem(item) {
   }, 50)
 }
 
+// 取消etag列表的显示
 function cancel() {
   caretPosition = {
     display: "none"
@@ -371,11 +372,12 @@ function cancel() {
   tagQuery = "/"
 }
 
+// 处理用户输入按键指令，包括调用etag接口，上下键选择，回车键确认
 function onKeyDown(event) {
   const key = event.key;
   if (showList.value) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
-      event.preventDefault(); 
+      event.preventDefault();
       const itemList = listRef.value.querySelectorAll('li');
       let selectedIndex = -1;
       for (let i = 0; i < itemList.length; i++) {
@@ -411,7 +413,7 @@ function onKeyDown(event) {
       cancel()
     } else if (/^[a-zA-Z]$/.test(key)) {
       tagQuery += key;
-      // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串，并更新tabList
+      // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串
       tagList.value = tagListCache.filter(item => {
         return item.abbr.startsWith(tagQuery)
       })
@@ -462,7 +464,7 @@ function textAbbr(text) {
   return result;
 }
 
-
+// 页面加载时的各种初始化
 onMounted(() => {
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
@@ -492,7 +494,7 @@ onMounted(() => {
 })
 </script>
 
-///////////////////////////////////
+////////////////////////////////////////////
 <template>
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
@@ -513,16 +515,15 @@ onMounted(() => {
       </el-scrollbar>
     </el-col>
   </el-row>
-
-
   <el-footer class="footer">
     <div id="magicInput">
       <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
-          <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item" style="display: table; width: 100%;">
+          <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
+            style="display: table; width: 100%;">
             <el-text :type="item.color" style="display: table-row;">
               <span style="display: table-cell; text-align: left;">{{ item.name }} ({{ item.type }})</span>
-    <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
+              <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
             </el-text>
           </li>
         </ul>
@@ -541,19 +542,13 @@ onMounted(() => {
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
-
-
         <el-row class="toolbar">
           <div class="toolbar-inner" id="drag-handle">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
-
-
               <Transition name="fade">
                 <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                   v-show="!streaming" />
               </Transition>
-
-
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
                 <template #reference>
@@ -578,14 +573,10 @@ onMounted(() => {
           </div>
         </el-row>
       </div>
-
-
-
     </div>
-
   </el-footer>
 </template>
 
-///////////////////////////////////////
+////////////////////////////////////////////
 
 <style src="./style.css"></style>
