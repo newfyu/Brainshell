@@ -78,19 +78,19 @@ const tagColor = {
   option: 'success',
   agent: 'danger'
 }
-let tabList = ref([
+let tagList = ref([
   { name: 'Item 1', type: 'base' },
   { name: '翻译', type: 'prompt' },
   { name: 'Item 3', type: 'agent' },
   { name: 'Item 4', type: 'option' },
 ])
+let tagListCache = []
 let caretPosition = { left: 0, top: 0 };
-let content = '';
 let listRef = ref(null)
 let inputRef = ref(null)
 let showList = ref(false)
 let inputTags = ref([])
-
+let tagQuery = "/"
 
 
 currentWindow.on('resize', () => {
@@ -260,14 +260,14 @@ const contactBrainoor = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     const arr = response['data']['data'][7]['data']
-    tabList.value = arr.map(([name, type]) => ({ name, type }));
+    tagList.value = arr.map(([name, type]) => ({ name, type }));
 
-    tabList.value = tabList.value.map(item => {
+    tagList.value = tagList.value.map(item => {
       return {
         ...item, color: tagColor[item.type], abbr: '/' + textAbbr(item.name)
       }
     })
-
+    tagListCache = tagList.value.slice();
 
     if (!isLock) {
       QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:8px;margin-bottom:8px">连接成功,可以对话了。</div>']];
@@ -340,20 +340,24 @@ function tag2str() {
   } else {
     return ''
   }
-
 }
 
 function selectItem(item) {
-  // inputRef.value.focus(); // return focus to input area
   const textarea = inputRef.value.textarea
   const position = inputRef.value.textarea.selectionEnd
-  inputTags.value.push({ name: item.name, type: item.type, color: tagColor[item.type] })
-
+  // 如果inputTags.value中已经存在相同的条目，则不push进去
+  const hasSameItem = inputTags.value.some(tag => {
+    return tag.name === item.name && tag.type === item.type
+  })
+  if (!hasSameItem) {
+    inputTags.value.push({ name: item.name, type: item.type, color: tagColor[item.type] })
+  }
   let text = textarea.value;
-  textarea.value = text.substring(0, position - 1) + text.substring(position);
-  textarea.selectionStart = position - 1;
-  textarea.selectionEnd = position - 1;
-
+  const queryLength = tagQuery.length;
+  textarea.value = text.substring(0, position - queryLength) + text.substring(position);
+  textarea.selectionStart = position - queryLength;
+  textarea.selectionEnd = position - queryLength;
+  tagQuery = "/"
   setTimeout(() => {
     adjustHeight()
   }, 50)
@@ -364,14 +368,14 @@ function cancel() {
     display: "none"
   }
   showList.value = false;
-  content = content.slice(0, -1);
+  tagQuery = "/"
 }
 
 function onKeyDown(event) {
   const key = event.key;
   if (showList.value) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
-      event.preventDefault(); // prevent scrolling
+      event.preventDefault(); 
       const itemList = listRef.value.querySelectorAll('li');
       let selectedIndex = -1;
       for (let i = 0; i < itemList.length; i++) {
@@ -394,7 +398,7 @@ function onKeyDown(event) {
         const itemList = listRef.value.querySelectorAll('li');
         for (let i = 0; i < itemList.length; i++) {
           if (itemList[i].classList.contains('selected')) {
-            selectItem(tabList.value[i]);
+            selectItem(tagList.value[i]);
             break;
           }
         }
@@ -405,13 +409,39 @@ function onKeyDown(event) {
       }
     } else if (key === 'Escape') {
       cancel()
-    } // 最后else,输入其他数字的时候，在tablist中查询
+    } else if (/^[a-zA-Z]$/.test(key)) {
+      tagQuery += key;
+      // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串，并更新tabList
+      tagList.value = tagListCache.filter(item => {
+        return item.abbr.startsWith(tagQuery)
+      })
+      if (tagList.value.length === 0) {
+        cancel()
+      }
+    } else if (key === 'Backspace') {
+      tagQuery = tagQuery.slice(0, -1);
+      tagList.value = tagListCache.filter(item => {
+        return item.abbr.startsWith(tagQuery)
+      })
+      if (tagQuery === "" || tagList.value.length === 0) {
+        cancel()
+      }
+    }
   } else { // 输入文字模式
     if (key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
       sendRequests()
     }
     if (key === '/') {
+      tagList.value = tagListCache.filter(item => {
+        return item.abbr.startsWith(tagQuery)
+      })
+
+      // 如果tagList不为空，显示tagList，并且第一个li被选中
+      if (tagList.value.length > 0) {
+        listRef.value.querySelector('li').classList.add('selected');
+      }
+
       caretPosition = {
         display: "flex"
       }
@@ -460,13 +490,9 @@ onMounted(() => {
   }, 50)
   getState();
 })
-
 </script>
 
-
 ///////////////////////////////////
-
-
 <template>
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
@@ -493,9 +519,10 @@ onMounted(() => {
     <div id="magicInput">
       <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
-          <li v-for="(item, index) in tabList" :key="index" @click="selectItem(item)" class="tab-item">
-            <el-text :type="item.color">
-              {{ item.abbr }}  {{ item.name }} ({{ item.type }})
+          <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item" style="display: table; width: 100%;">
+            <el-text :type="item.color" style="display: table-row;">
+              <span style="display: table-cell; text-align: left;">{{ item.name }} ({{ item.type }})</span>
+    <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
             </el-text>
           </li>
         </ul>
@@ -520,12 +547,12 @@ onMounted(() => {
           <div class="toolbar-inner" id="drag-handle">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
 
-              <!-- <el-tooltip content="新建对话页面" placement="top" effect="light"> -->
+
               <Transition name="fade">
                 <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                   v-show="!streaming" />
               </Transition>
-              <!-- </el-tooltip> -->
+
 
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
@@ -535,11 +562,9 @@ onMounted(() => {
                   </Transition>
                 </template>
               </el-popconfirm>
-              <!-- <el-tooltip content="锁定窗口" placement="top" effect="light"> -->
               <Transition name="fade">
                 <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
               </Transition>
-              <!-- </el-tooltip> -->
               <Transition name="fade">
                 <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
                   v-show="streaming" @click="stopRequest">stop</el-button>
