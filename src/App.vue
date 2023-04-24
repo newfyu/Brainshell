@@ -355,6 +355,7 @@ function selectItem(item) {
   let text = textarea.value;
   const queryLength = tagQuery.length;
   textarea.value = text.substring(0, position - queryLength) + text.substring(position);
+  inputText.value = textarea.value;
   textarea.selectionStart = position - queryLength;
   textarea.selectionEnd = position - queryLength;
   tagQuery = "/"
@@ -537,7 +538,7 @@ onMounted(() => {
       <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
-          <el-input id="textArea" v-model.lazy="inputText" @input="handleInput" type="textarea" ref="inputRef"
+          <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
             maxlength="2000" placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
