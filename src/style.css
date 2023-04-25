@@ -236,3 +236,10 @@ display: flex;
 flex-direction: row;
 justify-content: space-between;
 }
+.v-enter-active, .v-leave-active {
+    transition: transform 0.3s ease;
+  }
+  
+.v-enter-from, .v-leave-to {
+transform: translateY(50%);
+}
