@@ -68,7 +68,7 @@ const tagColor = { // 根据etag的类型设定标签颜色
   base: 'warning',
   prompt: 'primary',
   option: 'success',
-  agent: 'danger'
+  agent: 'danger',
 }
 let tagList = ref([
   { name: 'Item 1', type: 'base' },
@@ -254,6 +254,10 @@ const contactBrainoor = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
     data: []
   }).then((response) => {
+    if (!isLock) {
+      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
+      md2html();
+    }
     pageInfo.value = response['data']['data'][6]
     const arr = response['data']['data'][7]['data']
     tagList.value = arr.map(([name, type]) => ({ name, type }));
@@ -265,11 +269,7 @@ const contactBrainoor = () => {
     })
     tagListCache = tagList.value.slice();
 
-    if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
-      md2html();
-      // clearInterval(retryId);
-    }
+    
   }).catch(error => {
     console.error(`连接braindoor错误： ${error.message}`);
     retry();
@@ -517,6 +517,7 @@ onMounted(() => {
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
         <TransitionGroup tag="div" name="slide">
+          <template>
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <!-- <div class="Q" v-html="round[0]"></div> -->
@@ -528,18 +529,20 @@ onMounted(() => {
               <div class="A" v-html="round[1]"></div>
             </div>
           </div>
+        </template>
         </TransitionGroup>
       </el-scrollbar>
     </el-col>
   </el-row>
   <el-footer class="footer">
     <div id="magicInput">
+      
       <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
         <ul>
           <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
             style="display: table; width: 100%;">
             <el-text :type="item.color" style="display: table-row;">
-              <span style="display: table-cell; text-align: left;">{{ item.name }} ({{ item.type }})</span>
+              <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
               <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
             </el-text>
           </li>
