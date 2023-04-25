@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell, dialog } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
 const { spawn } = require('child_process');

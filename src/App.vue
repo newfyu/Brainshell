@@ -27,7 +27,6 @@ const md2html = () => {
   }
 }
 
-
 let QAcontext = ref([]); // 所有的问答对历史
 let scrollbarRef = ref(null); // 滚动条的ref，控制滚动
 let inputText = ref('')  // 主输入框的内容
@@ -64,18 +63,14 @@ let isLoading = ref(true) // 是否正在加载，控制是否可以输入和使
 const dragHandle = ref(null); // 拖动窗口的句柄
 let isInputFocus = ref(null)
 let cancelToken = null
-const tagColor = { // 根据etag的类型设定标签颜色
+const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分颜色，不是实际意义
   base: 'warning',
   prompt: 'primary',
   option: 'success',
-  agent: 'danger'
+  agent: 'danger',
+  model: 'default',
 }
-let tagList = ref([
-  { name: 'Item 1', type: 'base' },
-  { name: '翻译', type: 'prompt' },
-  { name: 'Item 3', type: 'agent' },
-  { name: 'Item 4', type: 'option' },
-])
+let tagList = ref([])
 let tagListCache = []
 let caretPosition = { left: 0, top: 0 };
 let listRef = ref(null)
@@ -540,7 +535,7 @@ onMounted(() => {
           <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
             style="display: table; width: 100%;">
             <el-text :type="item.color" style="display: table-row;">
-              <span style="display: table-cell; text-align: left;">{{ item.name }} ({{ item.type }})</span>
+              <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
               <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
             </el-text>
           </li>
