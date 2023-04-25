@@ -266,7 +266,8 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '<div style="margin-top:8px;margin-bottom:8px">连接成功,可以对话了。</div>']];
+      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
+      md2html();
       // clearInterval(retryId);
     }
   }).catch(error => {
@@ -413,7 +414,7 @@ function onKeyDown(event) {
       }
     } else if (key === 'Escape') {
       cancel()
-    } else if (/^[a-zA-Z]$/.test(key)) {
+    } else if (/^[a-zA-Z]$/.test(key)) { // 输入字母模式
       tagQuery += key;
       // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串
       tagList.value = tagListCache.filter(item => {
