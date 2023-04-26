@@ -390,6 +390,7 @@ function onKeyDown(event) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
       event.preventDefault();
       const itemList = listRef.value.querySelectorAll('li');
+
       let selectedIndex = -1;
       for (let i = 0; i < itemList.length; i++) {
         if (itemList[i].classList.contains('selected')) {
@@ -457,21 +458,23 @@ function onKeyDown(event) {
       // 如果tagList不为空，且tagList中没有已经被选中的li, 则显示tagList，并且第一个li被选中
       let itemList = []
       if (tagList.value.length > 0) {
-        itemList = listRef.value.querySelectorAll('li')
-      }
-      // 判断itemList如果不为空，且没有一个元素被选中，则选中第一个元素
-      if (itemList.length > 0) {
-        let flag = false
-        for (let i = 0; i < itemList.length; i++) {
-          if (itemList[i].classList.contains('selected')) {
-            flag = true
-            break
+        setTimeout(() => {
+          itemList = listRef.value.querySelectorAll('li')
+          if (itemList.length > 0) {
+            let flag = false
+            for (let i = 0; i < itemList.length; i++) {
+              if (itemList[i].classList.contains('selected')) {
+                flag = true
+                break
+              }
+            }
+            if (!flag) {
+              itemList[0].classList.add('selected')
+            }
           }
-        }
-        if (!flag) {
-          itemList[0].classList.add('selected')
-        }
+        }, 500)
       }
+
 
       caretPosition = {
         display: "flex"
