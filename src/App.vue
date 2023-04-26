@@ -335,6 +335,20 @@ function tag2str() {
   }
 }
 
+// function scrollToItem(item) {
+//   const list = listRef.value;
+//   const scrollTop = list.scrollTop;
+//   const itemTop = item.offsetTop;
+//   const itemHeight = item.offsetHeight;
+//   const listHeight = list.clientHeight;
+//   if (itemTop < scrollTop) {
+//     list.scrollTop = itemTop;
+//   } else if (itemTop + itemHeight > scrollTop + listHeight) {
+//     list.scrollTop = itemTop + itemHeight - listHeight;
+//   }
+// }
+
+
 // 选择etag列表中的条目
 function selectItem(item) {
   const textarea = inputRef.value.textarea
@@ -346,7 +360,7 @@ function selectItem(item) {
   if (!hasSameItem) {
     inputTags.value.push({ name: item.name, type: item.type, color: tagColor[item.type] })
   }
-  
+
   setTimeout(() => {
     let text = textarea.value;
     const queryLength = tagQuery.length;
@@ -385,11 +399,15 @@ function onKeyDown(event) {
       if (key === 'ArrowUp' && selectedIndex > 0) {
         itemList[selectedIndex].classList.remove('selected');
         itemList[selectedIndex - 1].classList.add('selected');
+        itemList[selectedIndex - 1].scrollIntoView({ block: 'nearest' }); // 滚动到可视区域
+        // scrollToItem(itemList[selectedIndex - 1]);
       } else if (key === 'ArrowDown' && selectedIndex < itemList.length - 1) {
         if (selectedIndex >= 0) {
           itemList[selectedIndex].classList.remove('selected');
         }
         itemList[selectedIndex + 1].classList.add('selected');
+        // scrollToItem(itemList[selectedIndex + 1]);
+        itemList[selectedIndex + 1].scrollIntoView({ block: 'nearest' });
       }
       if (key === 'Enter') {
         event.preventDefault()
@@ -453,7 +471,7 @@ function onKeyDown(event) {
           itemList[0].classList.add('selected')
         }
       }
-      
+
       caretPosition = {
         display: "flex"
       }
@@ -526,20 +544,23 @@ onMounted(() => {
     </el-col>
   </el-row>
   <el-footer class="footer">
-    <div id="magicInput">
+    <div id="TagPopContainer">
       <Transition>
-      <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
-        <ul>
-          <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
-            style="display: table; width: 100%;">
-            <el-text :type="item.color" style="display: table-row;">
-              <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
-              <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
-            </el-text>
-          </li>
-        </ul>
-      </div>
-    </Transition>
+        <div ref="listRef" class="popList" :style="caretPosition" v-show="showList">
+          <ul>
+            <el-scrollbar id="pop_scrollbar" height="150px" v-if="showList">
+              <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
+                style="display: table; width: 100%;">
+                <el-text :type="item.color" style="display: table-row;">
+                  <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
+                  <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
+                </el-text>
+              </li>
+            </el-scrollbar>
+          </ul>
+        </div>
+      </Transition>
+
       <div class="tagBox" ref="tagBoxRef">
         <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
           effect="dark" :disable-transitions="true" @close="handleTagClose(tag)">
@@ -549,8 +570,8 @@ onMounted(() => {
       <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
-          <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
-            maxlength="2000" placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+          <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef" maxlength="2000"
+            placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
