@@ -249,7 +249,8 @@ const contactBrainoor = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     const arr = response['data']['data'][7]['data']
-    tagList.value = arr.map(([name, type]) => ({ name, type }));
+    // tagList.value = arr.map(([name, type]) => ({ name, type }));
+    tagList.value = [...tagList.value, ...arr.map(([name, type]) => ({ name, type }))];
 
     tagList.value = tagList.value.map(item => {
       return {
@@ -489,7 +490,7 @@ function textAbbr(text) {
   if (result.length > 4) {
     result = result.slice(0, 4);
   }
-  return result;
+  return result.toLowerCase();
 }
 
 // 页面加载时的各种初始化
