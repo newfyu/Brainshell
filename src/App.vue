@@ -66,9 +66,9 @@ let cancelToken = null
 const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分颜色，不是实际意义
   base: 'warning',
   prompt: 'primary',
-  option: 'success',
+  engine: 'success',
   agent: 'danger',
-  model: 'default',
+  model: 'succes',
 }
 let tagList = ref([])
 let tagListCache = []
@@ -78,7 +78,6 @@ let inputRef = ref(null)
 let showList = ref(false)
 let inputTags = ref([])
 let tagQuery = "/"
-
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -218,7 +217,6 @@ const lock = () => {
   }
   ipcRenderer.send("render2main", "reloadWindow");
 }
-
 
 const textAreaFocus = () => {
   isInputFocus.value = true
