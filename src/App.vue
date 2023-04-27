@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer} from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled,Pointer } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -60,7 +60,7 @@ let intervalId = null // 流式请求的定时器id
 let pageInfo = ref(null) // 页码信息
 let streaming = ref(false) // 是否正在流式请求
 let isLoading = ref(true) // 是否正在加载，控制是否可以输入和使用工具按钮
-const dragHandle = ref(null); // 拖动窗口的句柄
+// const dragHandle = ref(null); // 拖动窗口的句柄
 let isInputFocus = ref(null)
 let cancelToken = null
 const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分颜色，不是实际意义
@@ -517,7 +517,7 @@ onMounted(() => {
     setState();
   }))
 
-  dragHandle.value = document.getElementById('drag-handle');
+  // dragHandle.value = document.getElementById('drag-handle');
   contactBrainoor();
   setTimeout(() => {
     adjustHeight();
@@ -582,10 +582,12 @@ onMounted(() => {
         <el-row class="toolbar">
           <div class="toolbar-inner">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+              <el-tooltip content="新建页面" placement="top">
               <Transition name="fade">
                 <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                   v-show="!streaming" />
               </Transition>
+            </el-tooltip>
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
                 <template #reference>
@@ -594,18 +596,20 @@ onMounted(() => {
                   </Transition>
                 </template>
               </el-popconfirm>
+              <el-tooltip content="伴随" placement="top">
               <Transition name="fade">
                 <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
               </Transition>
-              <Transition name="fade">
-                <el-button :icon="Pointer" text circle type="info"  v-show="isLock" id="drag-handle"/>
-              </Transition>
+            </el-tooltip>
+              
+              <el-tooltip content="拖动" placement="top">
+                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock"/>
+              </el-tooltip>
+
               <Transition name="fade">
                 <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
-
-              
             </el-col>
             <el-col :span="8" class="right-align">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
