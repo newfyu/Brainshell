@@ -8,6 +8,9 @@ module.exports = {
       nodeIntegration: true,
       externals: ['electron-store'],
       builderOptions: {
+        "win": {
+          "icon": "public/icon256.png"
+        },
         extraResources: [
           {
             from: "/Users/lhan/Projects/BrainDoor/dist/braindoor",
