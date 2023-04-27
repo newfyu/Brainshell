@@ -83,8 +83,15 @@ app.on('window-all-closed', () => {
     // })
 
   // app.quit()
+  setTimeout(() => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      app.quit();
+    }
+  }, 5000); // 等待5秒钟
+
+
   if (process.platform !== 'darwin') {
-    app.quit()
+    // app.quit()
   }
 })
 

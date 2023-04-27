@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer} from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -580,7 +580,7 @@ onMounted(() => {
           </el-input>
         </el-row>
         <el-row class="toolbar">
-          <div class="toolbar-inner" id="drag-handle">
+          <div class="toolbar-inner">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <Transition name="fade">
                 <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -598,9 +598,14 @@ onMounted(() => {
                 <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
               </Transition>
               <Transition name="fade">
+                <el-button :icon="Pointer" text circle type="info"  v-show="isLock" id="drag-handle"/>
+              </Transition>
+              <Transition name="fade">
                 <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
+
+              
             </el-col>
             <el-col :span="8" class="right-align">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
