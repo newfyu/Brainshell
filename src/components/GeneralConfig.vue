@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="form1" label-position="right" label-width="80px">
+  <el-form label-position="right" label-width="80px">
     <el-form-item label="API key: ">
       <el-input v-model="apikey" placeholder="输入OpenAI的API key" />
     </el-form-item>

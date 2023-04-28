@@ -1,7 +1,6 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <img alt="Vue logo" src="../assets/logo.png">
+  <div class="about">
+    <img alt="EverGPT logo" src="../assets/logo.png" class="center">
     <p>
       For a guide and recipes on how to configure / customize this project,<br>
       check out the
@@ -31,13 +30,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
+<script setup>
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -56,4 +50,10 @@ li {
 a {
   color: #42b983;
 }
+.center {
+  display: block; /* 设置图片为块级元素 */
+  margin: auto; /* 让图片水平和垂直居中 */
+}
+
+
 </style>

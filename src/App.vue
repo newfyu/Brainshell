@@ -9,7 +9,7 @@ import 'highlight.js/styles/monokai-sublime.css';
 import { ElMessage } from 'element-plus';
 import pinyin from "pinyin";
 import GeneralConfig from './components/GeneralConfig.vue';
-import About from './components/About.vue';
+import AboutThis from './components/AboutThis.vue';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -592,7 +592,7 @@ onMounted(() => {
                     v-show="!streaming" />
                 </Transition>
               </el-tooltip>
-              <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
+              <el-popconfirm title="确定删除页面?" :hide-after="0" confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
                 <template #reference>
                   <Transition name="fade">
@@ -600,7 +600,7 @@ onMounted(() => {
                   </Transition>
                 </template>
               </el-popconfirm>
-              <el-tooltip content="伴随" placement="top">
+              <el-tooltip content="无框" placement="top">
                 <Transition name="fade">
                   <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
                     v-show="!streaming" />
@@ -629,13 +629,13 @@ onMounted(() => {
         </el-row>
       </div>
     </div>
-    <el-drawer v-model="drawer" title="设置" :with-header="true" direction="btt" size="90%" destroy-on-close="true">
+    <el-drawer v-model="drawer" title="设置" :with-header="true" direction="btt" size="90%" destroy-on-close>
       <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
         <el-tab-pane label="常规" name="normal">
           <GeneralConfig />
         </el-tab-pane>
         <el-tab-pane label="关于" name="about">
-          <About />
+          <AboutThis />
         </el-tab-pane>
       </el-tabs>
     </el-drawer>
