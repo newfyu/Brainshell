@@ -182,13 +182,11 @@ pre {
 }
 
 .popList {
-    /* position: absolute; */
     background-color: white;
-    /* border: 1px solid gray; */
     max-height: 150px;
-    /* overflow: auto; */
     border-radius: 10px;
-    max-width: 200px;
+    max-width: 300px;
+    width: 300px;
     box-shadow: 0px 0px 3px #888888;
     margin: 5px;
     padding: 10px;
@@ -199,6 +197,7 @@ ul {
     list-style: none;
     margin: 0;
     padding: 5px;
+    width: 310px;
 }
 
 

@@ -1,13 +1,15 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled,Pointer } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
 import { ElMessage } from 'element-plus';
 import pinyin from "pinyin";
+import GeneralConfig from './components/GeneralConfig.vue';
+import About from './components/About.vue';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -31,6 +33,8 @@ let QAcontext = ref([]); // 所有的问答对历史
 let scrollbarRef = ref(null); // 滚动条的ref，控制滚动
 let inputText = ref('')  // 主输入框的内容
 let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
+const drawer = ref(false)
+const activeName = ref('normal')
 let currentWindow = remote.getCurrentWindow(); // 当前窗口
 let isLock = !currentWindow.isResizable() // 是否锁定窗口
 let winOffset = 0 // 窗口偏移量，用于微调一些组件的位置
@@ -207,7 +211,7 @@ const stopRequest = () => {
   }
 }
 
-// locak模式切换，向主进程发送消息，主进程收到消息后重载窗口
+// lock模式切换，向主进程发送消息，主进程收到消息后重载窗口
 const lock = () => {
   if (isLock) {
     isLock = false;
@@ -556,7 +560,7 @@ onMounted(() => {
               <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
                 style="display: table; width: 100%;">
                 <el-text :type="item.color" style="display: table-row;">
-                  <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
+                  <span style="display: table-cell; text-align: left;">{{ item.name }} [{{ item.type }}]</span>
                   <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
                 </el-text>
               </li>
@@ -583,11 +587,11 @@ onMounted(() => {
           <div class="toolbar-inner">
             <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建页面" placement="top">
-              <Transition name="fade">
-                <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
-                  v-show="!streaming" />
-              </Transition>
-            </el-tooltip>
+                <Transition name="fade">
+                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
+                    v-show="!streaming" />
+                </Transition>
+              </el-tooltip>
               <el-popconfirm title="确定删除页面?" hide-after=0 confirm-button-type="danger" position="top" @confirm="delPage"
                 placement="top">
                 <template #reference>
@@ -597,13 +601,18 @@ onMounted(() => {
                 </template>
               </el-popconfirm>
               <el-tooltip content="伴随" placement="top">
-              <Transition name="fade">
-                <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming" v-show="!streaming" />
-              </Transition>
-            </el-tooltip>
-              
+                <Transition name="fade">
+                  <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
+                    v-show="!streaming" />
+                </Transition>
+              </el-tooltip>
+
               <el-tooltip content="拖动" placement="top">
-                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock"/>
+                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
+              </el-tooltip>
+              <el-tooltip content="设置" placement="top">
+                <el-button :icon="Setting" text circle type="info" v-show="!isLock" :disabled="streaming"
+                  @click="drawer = true" />
               </el-tooltip>
 
               <Transition name="fade">
@@ -620,6 +629,16 @@ onMounted(() => {
         </el-row>
       </div>
     </div>
+    <el-drawer v-model="drawer" title="设置" :with-header="true" direction="btt" size="90%" destroy-on-close="true">
+      <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+        <el-tab-pane label="常规" name="normal">
+          <GeneralConfig />
+        </el-tab-pane>
+        <el-tab-pane label="关于" name="about">
+          <About />
+        </el-tab-pane>
+      </el-tabs>
+    </el-drawer>
   </el-footer>
 </template>
 
