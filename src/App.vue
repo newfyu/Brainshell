@@ -442,10 +442,14 @@ function onKeyDown(event) {
       }
     } else if (key === 'Backspace') {
       tagQuery = tagQuery.slice(0, -1);
-      tagList.value = tagListCache.filter(item => {
+      if (tagQuery === "") {
+        tagList.value = tagListCache
+      } else {
+        tagList.value = tagListCache.filter(item => {
         return item.abbr.includes(tagQuery)
       })
-      if (tagQuery === "" || tagList.value.length === 0) {
+      }
+      if (tagList.value.length === 0) {
         cancel()
       }
     }
