@@ -441,18 +441,21 @@ function onKeyDown(event) {
         cancel()
       }
     } else if (key === 'Backspace') {
-      tagQuery = tagQuery.slice(0, -1);
+      if (tagQuery ==="") {
+        cancel()
+      } else { tagQuery = tagQuery.slice(0, -1);
       if (tagQuery === "") {
         tagList.value = tagListCache
       } else {
         tagList.value = tagListCache.filter(item => {
-        return item.abbr.includes(tagQuery)
-      })
+          return item.abbr.includes(tagQuery)
+        })
       }
       if (tagList.value.length === 0) {
         cancel()
-      }
+      }}
     }
+
   } else { // 输入文字模式
     if (key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
@@ -591,8 +594,8 @@ onMounted(() => {
                     v-show="!streaming" />
                 </Transition>
               </el-tooltip>
-              <el-popconfirm title="确定删除页面?" :hide-after="0" confirm-button-type="danger" position="top" @confirm="delPage"
-                placement="top">
+              <el-popconfirm title="确定删除页面?" :hide-after="0" confirm-button-type="danger" position="top"
+                @confirm="delPage" placement="top">
                 <template #reference>
                   <Transition name="fade">
                     <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming" />
