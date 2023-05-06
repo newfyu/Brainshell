@@ -81,7 +81,7 @@ let listRef = ref(null)
 let inputRef = ref(null)
 let showList = ref(false)
 let inputTags = ref([])
-let tagQuery = "/"
+let tagQuery = ""
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -258,7 +258,7 @@ const contactBrainoor = () => {
 
     tagList.value = tagList.value.map(item => {
       return {
-        ...item, color: tagColor[item.type], abbr: '/' + textAbbr(item.name)
+        ...item, color: tagColor[item.type], abbr: textAbbr(item.name) + item.type
       }
     })
     tagListCache = tagList.value.slice();
@@ -368,12 +368,12 @@ function selectItem(item) {
 
   setTimeout(() => {
     let text = textarea.value;
-    const queryLength = tagQuery.length;
+    const queryLength = tagQuery.length + 1;
     textarea.value = text.substring(0, position - queryLength) + text.substring(position);
     inputText.value = textarea.value;
     textarea.selectionStart = position - queryLength;
     textarea.selectionEnd = position - queryLength;
-    tagQuery = "/"
+    tagQuery = ""
     adjustHeight()
   }, 50)
 }
@@ -384,7 +384,7 @@ function cancel() {
     display: "none"
   }
   showList.value = false;
-  tagQuery = "/"
+  tagQuery = ""
 }
 
 // 处理用户输入按键指令，包括调用etag接口，上下键选择，回车键确认
@@ -435,7 +435,7 @@ function onKeyDown(event) {
       tagQuery += key;
       // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串
       tagList.value = tagListCache.filter(item => {
-        return item.abbr.startsWith(tagQuery)
+        return item.abbr.includes(tagQuery)
       })
       if (tagList.value.length === 0) {
         cancel()
@@ -443,7 +443,7 @@ function onKeyDown(event) {
     } else if (key === 'Backspace') {
       tagQuery = tagQuery.slice(0, -1);
       tagList.value = tagListCache.filter(item => {
-        return item.abbr.startsWith(tagQuery)
+        return item.abbr.includes(tagQuery)
       })
       if (tagQuery === "" || tagList.value.length === 0) {
         cancel()
@@ -455,9 +455,7 @@ function onKeyDown(event) {
       sendRequests()
     }
     if (key === '/') {
-      tagList.value = tagListCache.filter(item => {
-        return item.abbr.startsWith(tagQuery)
-      })
+      tagList.value = tagListCache
 
       // 如果tagList不为空，且tagList中没有已经被选中的li, 则显示tagList，并且第一个li被选中
       let itemList = []
@@ -494,9 +492,6 @@ function textAbbr(text) {
     style: pinyin.STYLE_FIRST_LETTER
   });
   let result = pinyinArr.join('');
-  if (result.length > 4) {
-    result = result.slice(0, 4);
-  }
   return result.toLowerCase();
 }
 
@@ -560,8 +555,8 @@ onMounted(() => {
               <li v-for="(item, index) in tagList" :key="index" @click="selectItem(item)" class="tag-item"
                 style="display: table; width: 100%;">
                 <el-text :type="item.color" style="display: table-row;">
-                  <span style="display: table-cell; text-align: left;">{{ item.name }} [{{ item.type }}]</span>
-                  <span style="display: table-cell; text-align: right;">{{ item.abbr }}</span>
+                  <span style="display: table-cell; text-align: left;">{{ item.name }}</span>
+                  <span style="display: table-cell; text-align: right;">[{{ item.type }}]</span>
                 </el-text>
               </li>
             </el-scrollbar>
@@ -585,7 +580,7 @@ onMounted(() => {
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+            <el-col :span="19" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建页面" placement="top">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -620,7 +615,7 @@ onMounted(() => {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-            <el-col :span="8" class="right-align">
+            <el-col :span="5" class="right-align">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
               <el-text size='small' type="info">{{ pageInfo }}</el-text>
               <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming" />
