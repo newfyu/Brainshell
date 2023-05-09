@@ -10,6 +10,8 @@ import { ElMessage } from 'element-plus';
 import pinyin from "pinyin";
 import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
+import fs from 'fs';
+import path from 'path';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -82,6 +84,7 @@ let inputRef = ref(null)
 let showList = ref(false)
 let inputTags = ref([])
 let tagQuery = ""
+let placeholderText = ref('请输入内容');
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -441,19 +444,21 @@ function onKeyDown(event) {
         cancel()
       }
     } else if (key === 'Backspace') {
-      if (tagQuery ==="") {
-        cancel()
-      } else { tagQuery = tagQuery.slice(0, -1);
       if (tagQuery === "") {
-        tagList.value = tagListCache
-      } else {
-        tagList.value = tagListCache.filter(item => {
-          return item.abbr.includes(tagQuery)
-        })
-      }
-      if (tagList.value.length === 0) {
         cancel()
-      }}
+      } else {
+        tagQuery = tagQuery.slice(0, -1);
+        if (tagQuery === "") {
+          tagList.value = tagListCache
+        } else {
+          tagList.value = tagListCache.filter(item => {
+            return item.abbr.includes(tagQuery)
+          })
+        }
+        if (tagList.value.length === 0) {
+          cancel()
+        }
+      }
     }
 
   } else { // 输入文字模式
@@ -523,6 +528,40 @@ onMounted(() => {
     setState();
   }))
 
+  const inputArea = document.querySelector('#inputArea');
+  inputArea.addEventListener('dragover', (event) => {
+    placeholderText.value = '松开鼠标传入文件'
+    inputArea.style.border = '2px dashed #555';
+    inputArea.style.borderWidth = '2px';
+    event.preventDefault();
+  })
+  inputArea.addEventListener('dragleave', () => {
+    placeholderText.value = '请输入内容'
+    inputArea.removeAttribute('style');
+});
+
+  inputArea.addEventListener('drop', (event) => {
+    inputArea.removeAttribute('style');
+    console.log(event.dataTransfer.files[0].path)
+    // 将files[0]复制到指定目录
+    const filePath = event.dataTransfer.files[0].path;
+    const targetDir = '/Users/lhan/braindoor/temp'; // 指定目录
+
+    // 读取文件内容并写入指定目录
+    fs.readFile(filePath, (err, data) => {
+      if (err) throw err;
+      const fileName = path.basename(filePath);
+      const targetPath = path.join(targetDir, fileName);
+      fs.writeFile(targetPath, data, (err) => {
+        if (err) throw err;
+
+        console.log(`${filePath} 已复制到 ${targetPath}`);
+      });
+    });
+
+    event.preventDefault();
+  })
+
   // dragHandle.value = document.getElementById('drag-handle');
   contactBrainoor();
   setTimeout(() => {
@@ -577,24 +616,24 @@ onMounted(() => {
           {{ tag.name }}
         </el-tag>
       </div>
-      <div class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
+      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef" maxlength="2000"
-            placeholder="请输入内容" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+            :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
             <el-col :span="19" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
-              <el-tooltip content="新建页面" placement="top">
+              <el-tooltip content="新建对话" placement="top">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                     v-show="!streaming" />
                 </Transition>
               </el-tooltip>
-              <el-popconfirm title="确定删除页面?" :hide-after="0" confirm-button-type="danger" position="top"
+              <el-popconfirm title="确定删除当前对话?" :hide-after="0" confirm-button-type="danger" position="top"
                 @confirm="delPage" placement="top">
                 <template #reference>
                   <Transition name="fade">
