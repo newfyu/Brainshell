@@ -66,7 +66,6 @@ let intervalId = null // 流式请求的定时器id
 let pageInfo = ref(null) // 页码信息
 let streaming = ref(false) // 是否正在流式请求
 let isLoading = ref(true) // 是否正在加载，控制是否可以输入和使用工具按钮
-// const dragHandle = ref(null); // 拖动窗口的句柄
 let isInputFocus = ref(null)
 let cancelToken = null
 const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分颜色，不是实际意义
@@ -85,6 +84,12 @@ let showList = ref(false)
 let inputTags = ref([])
 let tagQuery = ""
 let placeholderText = ref('请输入内容');
+let reviewMode = false;
+
+const askAPI = 'http://127.0.0.1:7860/run/ask'
+const askStreamAPI = 'http://127.0.0.1:7860/run/get_ask_stream_answer'
+const reviewAPI = 'http://127.0.0.1:7860/run/review'
+const reviewStreamAPI = 'http://127.0.0.1:7860/run/get_review_stream_answer'
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -99,7 +104,16 @@ const sendRequests = () => {
     cancelToken = axios.CancelToken.source()
     const tagStr = tag2str()
     question = question + tagStr
-    axios.post('http://127.0.0.1:7860/run/ask', {
+
+    let chatAPI = askAPI
+    let streamAPI = askStreamAPI
+
+    if (reviewMode){
+      chatAPI = reviewAPI
+      streamAPI = reviewStreamAPI
+    }
+
+    axios.post(chatAPI, {
       data: [question, "", "", "default", "", "brainshell"]
     }).then(response => {
       clearInterval(intervalId); // 停止流式请求
@@ -114,7 +128,7 @@ const sendRequests = () => {
     });
     // 发送流式结果请求
     intervalId = setInterval(() => {
-      axios.post('http://127.0.0.1:7860/run/get_ask_stream_answer', {
+      axios.post(streamAPI, {
         data: [question, []]
       }).then(response => {
         QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
@@ -149,6 +163,7 @@ const newPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = ""
+    reviewMode = false;
   }).catch(error => {
     console.error(error);
   });
@@ -507,6 +522,24 @@ function textAbbr(text) {
   return result.toLowerCase();
 }
 
+function uploadFile(filePath) {
+  axios.post('http://127.0.0.1:7860/run/upload_file', {
+      data: [filePath, "", ""]
+    }).then(response => {
+      QAcontext.value = response['data']['data'][0]
+      inputRef.value.focus()
+      reviewMode = true;
+      setTimeout(() => {
+        QAcontext.value = response['data']['data'][0]
+        md2html()
+      }, 100);
+    }).catch(error => {
+      console.error(error);
+    });
+}
+
+
+
 // 页面加载时的各种初始化
 onMounted(() => {
   let win = remote.getCurrentWindow();
@@ -528,6 +561,7 @@ onMounted(() => {
     setState();
   }))
 
+  // 注册拖拽文件上传的处理  
   const inputArea = document.querySelector('#inputArea');
   inputArea.addEventListener('dragover', (event) => {
     placeholderText.value = '松开鼠标传入文件'
@@ -554,10 +588,12 @@ onMounted(() => {
       const targetPath = path.join(targetDir, fileName);
       fs.writeFile(targetPath, data, (err) => {
         if (err) throw err;
-
         console.log(`${filePath} 已复制到 ${targetPath}`);
       });
     });
+
+    // 把文件传入braindoor并切块
+    uploadFile(filePath)
 
     event.preventDefault();
   })
