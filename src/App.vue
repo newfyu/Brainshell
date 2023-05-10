@@ -10,8 +10,6 @@ import { ElMessage } from 'element-plus';
 import pinyin from "pinyin";
 import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
-import fs from 'fs';
-import path from 'path';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -83,19 +81,14 @@ let inputRef = ref(null)
 let showList = ref(false)
 let inputTags = ref([])
 let tagQuery = ""
+let reviewMode = false
 let placeholderText = ref('请输入内容');
-let reviewMode = false;
-
-const askAPI = 'http://127.0.0.1:7860/run/ask'
-const askStreamAPI = 'http://127.0.0.1:7860/run/get_ask_stream_answer'
-const reviewAPI = 'http://127.0.0.1:7860/run/review'
-const reviewStreamAPI = 'http://127.0.0.1:7860/run/get_review_stream_answer'
 
 currentWindow.on('resize', () => {
   adjustHeight();
 })
 
-// 提交text
+// 提交text，发送请求到braindoor
 const sendRequests = () => {
   // 发送总请求
   let question = inputText.value
@@ -105,22 +98,15 @@ const sendRequests = () => {
     const tagStr = tag2str()
     question = question + tagStr
 
-    let chatAPI = askAPI
-    let streamAPI = askStreamAPI
-
-    if (reviewMode){
-      chatAPI = reviewAPI
-      streamAPI = reviewStreamAPI
-    }
-
-    axios.post(chatAPI, {
-      data: [question, "", "", "default", "", "brainshell"]
+    axios.post('http://127.0.0.1:7860/run/ask', {
+      data: [question, "", "", "default", "","", "brainshell","",""]
     }).then(response => {
       clearInterval(intervalId); // 停止流式请求
       streaming.value = false
       inputRef.value.focus()
       setTimeout(() => {
         QAcontext.value = response['data']['data'][0]
+        pageInfo.value = response['data']['data'][5]
         md2html()
       }, 100);
     }).catch(error => {
@@ -128,7 +114,7 @@ const sendRequests = () => {
     });
     // 发送流式结果请求
     intervalId = setInterval(() => {
-      axios.post(streamAPI, {
+      axios.post('http://127.0.0.1:7860/run/get_ask_stream_answer', {
         data: [question, []]
       }).then(response => {
         QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
@@ -161,9 +147,9 @@ const newPage = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
     data: []
   }).then((response) => {
-    pageInfo.value = response['data']['data'][6]
+    pageInfo.value = response['data']['data'][7]
     QAcontext.value = ""
-    reviewMode = false;
+    placeholderText.value = '请输入内容'
   }).catch(error => {
     console.error(error);
   });
@@ -178,8 +164,15 @@ const nextPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    reviewMode = response['data']['data'][9]
+    console.log(reviewMode)
+    if (reviewMode){
+      placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    } else {
+      placeholderText.value = '请输入内容'
+    }
     md2html()
-    scrollEnd()
+    // scrollEnd()
   }).catch(error => {
     console.error(error);
   });
@@ -192,6 +185,13 @@ const prevPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    reviewMode = response['data']['data'][9]
+    console.log(reviewMode)
+    if (reviewMode){
+      placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    } else {
+      placeholderText.value = '请输入内容'
+    }
     md2html()
     // scrollEnd()
   }).catch(error => {
@@ -206,6 +206,12 @@ const delPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
+    reviewMode = response['data']['data'][9]
+    if (reviewMode){
+      placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    } else {
+      placeholderText.value = '请输入内容'
+    }
     md2html()
     // scrollEnd()
   }).catch(error => {
@@ -269,8 +275,8 @@ const contactBrainoor = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
     data: []
   }).then((response) => {
-    pageInfo.value = response['data']['data'][6]
-    const arr = response['data']['data'][7]['data']
+    pageInfo.value = response['data']['data'][7]
+    const arr = response['data']['data'][8]['data']
     // tagList.value = arr.map(([name, type]) => ({ name, type }));
     tagList.value = [...tagList.value, ...arr.map(([name, type]) => ({ name, type }))];
 
@@ -524,7 +530,7 @@ function textAbbr(text) {
 
 function uploadFile(filePath) {
   axios.post('http://127.0.0.1:7860/run/upload_file', {
-      data: [filePath, "", ""]
+      data: [filePath]
     }).then(response => {
       QAcontext.value = response['data']['data'][0]
       inputRef.value.focus()
@@ -537,7 +543,6 @@ function uploadFile(filePath) {
       console.error(error);
     });
 }
-
 
 
 // 页面加载时的各种初始化
@@ -570,31 +575,17 @@ onMounted(() => {
     event.preventDefault();
   })
   inputArea.addEventListener('dragleave', () => {
-    placeholderText.value = '请输入内容'
+    placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     inputArea.removeAttribute('style');
 });
 
   inputArea.addEventListener('drop', (event) => {
     inputArea.removeAttribute('style');
-    console.log(event.dataTransfer.files[0].path)
-    // 将files[0]复制到指定目录
-    const filePath = event.dataTransfer.files[0].path;
-    const targetDir = '/Users/lhan/braindoor/temp'; // 指定目录
-
-    // 读取文件内容并写入指定目录
-    fs.readFile(filePath, (err, data) => {
-      if (err) throw err;
-      const fileName = path.basename(filePath);
-      const targetPath = path.join(targetDir, fileName);
-      fs.writeFile(targetPath, data, (err) => {
-        if (err) throw err;
-        console.log(`${filePath} 已复制到 ${targetPath}`);
-      });
-    });
-
+    const filePath = event.dataTransfer.files[0].path
+    placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    console.log(filePath)
     // 把文件传入braindoor并切块
     uploadFile(filePath)
-
     event.preventDefault();
   })
 
