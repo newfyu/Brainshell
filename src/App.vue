@@ -63,6 +63,7 @@ const adjustHeight = () => {
 let intervalId = null // 流式请求的定时器id
 let pageInfo = ref(null) // 页码信息
 let streaming = ref(false) // 是否正在流式请求
+let connected = ref(false) // 是否连接braindoor
 let isLoading = ref(true) // 是否正在加载，控制是否可以输入和使用工具按钮
 let isInputFocus = ref(null)
 let cancelToken = null
@@ -71,7 +72,7 @@ const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分�
   prompt: 'primary',
   engine: 'success',
   agent: 'danger',
-  model: 'succes',
+  model: 'info',
 }
 let tagList = ref([])
 let tagListCache = []
@@ -165,7 +166,6 @@ const nextPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
-    console.log(reviewMode)
     if (reviewMode){
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -186,7 +186,6 @@ const prevPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
-    console.log(reviewMode)
     if (reviewMode){
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -278,6 +277,9 @@ const contactBrainoor = () => {
     pageInfo.value = response['data']['data'][7]
     const arr = response['data']['data'][8]['data']
     // tagList.value = arr.map(([name, type]) => ({ name, type }));
+    connected.value = true;
+    console.log(connected.value);
+
     tagList.value = [...tagList.value, ...arr.map(([name, type]) => ({ name, type }))];
 
     tagList.value = tagList.value.map(item => {
@@ -288,10 +290,12 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在连接大脑门……', '连接成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
+      QAcontext.value = [['正在启动大脑门……', '启动成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
       md2html();
       // clearInterval(retryId);
+      
     }
+    
   }).catch(error => {
     console.error(`连接braindoor错误： ${error.message}`);
     retry();
@@ -653,25 +657,25 @@ onMounted(() => {
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="19" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+            <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
-                    v-show="!streaming" />
+                    v-show="!streaming && connected" />
                 </Transition>
               </el-tooltip>
               <el-popconfirm title="确定删除当前对话?" :hide-after="0" confirm-button-type="danger" position="top"
                 @confirm="delPage" placement="top">
                 <template #reference>
                   <Transition name="fade">
-                    <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming" />
+                    <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming && connected" />
                   </Transition>
                 </template>
               </el-popconfirm>
               <el-tooltip content="无框" placement="top">
                 <Transition name="fade">
                   <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
-                    v-show="!streaming" />
+                    v-show="!streaming && connected" />
                 </Transition>
               </el-tooltip>
 
@@ -679,7 +683,7 @@ onMounted(() => {
                 <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
               </el-tooltip>
               <el-tooltip content="设置" placement="top">
-                <el-button :icon="Setting" text circle type="info" v-show="!isLock" :disabled="streaming"
+                <el-button :icon="Setting" text circle type="info" v-show="!isLock && connected" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>
 
@@ -688,10 +692,10 @@ onMounted(() => {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-            <el-col :span="5" class="right-align">
-              <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming" />
+            <el-col :span="8" class="right-align">
+              <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming && !connected" />
               <el-text size='small' type="info">{{ pageInfo }}</el-text>
-              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming" />
+              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming && !connected" />
             </el-col>
           </div>
         </el-row>
