@@ -167,7 +167,7 @@ const nextPage = () => {
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
     if (reviewMode){
-      placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+      placeholderText.value = '目前是全文阅读模式，你可以针对上传的文档提问'
     } else {
       placeholderText.value = '请输入内容'
     }
@@ -650,7 +650,7 @@ onMounted(() => {
       <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
-          <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef" maxlength="2000"
+          <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
             :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
