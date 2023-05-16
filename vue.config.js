@@ -9,7 +9,13 @@ module.exports = {
       externals: ['electron-store'],
       builderOptions: {
         "win": {
-          "icon": "public/icon256.png"
+          "icon": "public/icon256.png",
+          extraResources: [
+            {
+              from: "/Users/lhan/Projects/Braindoor/extra_files/braindoor_win",
+              to: "braindoor"
+            }
+          ]
         },
         extraResources: [
           {

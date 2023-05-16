@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
 const { spawn } = require('child_process');
@@ -44,6 +44,8 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     }
   })
 
+
+
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
@@ -57,7 +59,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   // win.on('closed', () => {
   //   win = null
   // })
-  
+
   // 监听窗口关闭事件
 }
 
@@ -65,22 +67,22 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-    // 弹出提示框
-    // const options = {
-    //   type: 'question',
-    //   buttons: ['确认', '取消'],
-    //   defaultId: 0,
-    //   title: '确认退出',
-    //   message: '确定要关闭程序吗？',
-    //   // icon: 'assets/icon.png'
-    // }
+  // 弹出提示框
+  // const options = {
+  //   type: 'question',
+  //   buttons: ['确认', '取消'],
+  //   defaultId: 0,
+  //   title: '确认退出',
+  //   message: '确定要关闭程序吗？',
+  //   // icon: 'assets/icon.png'
+  // }
 
-    // dialog.showMessageBox(win, options).then((result) => {
-    //   if (result.response === 0) {
-    //     // 如果点击了确认按钮，则关闭窗口
-    //     app.quit()
-    //   }
-    // })
+  // dialog.showMessageBox(win, options).then((result) => {
+  //   if (result.response === 0) {
+  //     // 如果点击了确认按钮，则关闭窗口
+  //     app.quit()
+  //   }
+  // })
 
   // app.quit()
   setTimeout(() => {
@@ -100,7 +102,6 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    
     createWindow()
     win.once('ready-to-show', () => {
       win.show();
@@ -131,6 +132,18 @@ app.on('ready', async () => {
     braindoorLogToRender();
   })
 
+  // 禁用缩放
+  const defaultMenu = Menu.getApplicationMenu();
+  if (defaultMenu) {
+    const viewMenu = defaultMenu.items.find(item => item.label === 'View').submenu;
+    console.log('xxx'+viewMenu);
+    if (viewMenu) {
+      const zoomInMenuItem = viewMenu.items.find(item => item.label === 'Zoom In');
+      zoomInMenuItem.enabled = false;
+      const zoomOutMenuItem = viewMenu.items.find(item => item.label === 'Zoom Out');
+      zoomOutMenuItem.enabled = false;
+    }
+  }
 
 })
 
@@ -183,28 +196,7 @@ ipcMain.on('render2main', (event, param1) => {
   }
 })
 
-// 禁用菜单
-// app.whenReady().then(() => {
-//   // 获取视图菜单
-//   const template = [
-//     {
-//       label: 'View',
-//       submenu: [
 
-//       ],
-//       enabled: false // 设置为false禁用菜单
-//     },
-//     {label: 'Window',
-//       role: 'window',
-//       submenu: [
-//         { label: 'Minimize', role: 'minimize' },
-//         { label: 'Close', role: 'close' }
-//       ]}
-//   ]
-
-//   const menu = Menu.buildFromTemplate(template)
-//   Menu.setApplicationMenu(menu)
-// });
 
 
 //外部打开链接
@@ -229,10 +221,10 @@ const startBraindoor = () => {
   let workPath = path.join(resoursePath, 'braindoor');
   if (process.env.NODE_ENV === 'development') {
     braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
-    braindoorProcess = spawn(braindoorPath, {shell : false});
+    braindoorProcess = spawn(braindoorPath, { shell: false });
   } else {
     braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
-    braindoorProcess = spawn(braindoorPath, {shell : false, cwd: workPath});
+    braindoorProcess = spawn(braindoorPath, { shell: false, cwd: workPath });
   }
   console.log('Run braindoor.');
 };
@@ -259,11 +251,31 @@ const braindoorLogToRender = () => {
 }
 
 app.on('before-quit', () => {
-  braindoorProcess.kill();
+  if (braindoorProcess) {
+    braindoorProcess.kill();
+  }
 });
 
 app.on('quit', () => {
-  braindoorProcess.kill();
+  if (braindoorProcess) {
+    braindoorProcess.kill();
+  }
 });
+
+
+// 单例锁，开发时时候可以注释掉
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (win) {
+      if (win.isMinimized()) {
+        win.restore();
+      }
+      win.focus();
+    }
+  });
+}
 
 

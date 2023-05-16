@@ -38,14 +38,21 @@ const activeName = ref('normal')
 let currentWindow = remote.getCurrentWindow(); // 当前窗口
 let isLock = !currentWindow.isResizable() // 是否锁定窗口
 let winOffset = 0 // 窗口偏移量，用于微调一些组件的位置
+let isMac = process.platform === 'darwin' ? true : false // 判断当前的操作系统，如果是windows则设置为false，否则设置为true
 if (isLock) {
   winOffset = 30
 }
+
 if (!isLock) {
   QAcontext.value = [['正在连接braindoor……', '']];
+  if (!isMac) {
+    winOffset = -30
+  }
 }
 
 // let defaultBodyHeight = currentWindow.getSize()[1] - parseInt((currentWindow.getSize()[1] + 1700) / 12) + winOffset -40
+
+
 let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset // 默认的聊天显示框高度
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let retryCount = 0; // 当前已重试的次数
@@ -100,7 +107,7 @@ const sendRequests = () => {
     question = question + tagStr
 
     axios.post('http://127.0.0.1:7860/run/ask', {
-      data: [question, "", "", "default", "","", "brainshell","",""]
+      data: [question, "", "", "default", "", "", "brainshell", "", ""]
     }).then(response => {
       clearInterval(intervalId); // 停止流式请求
       streaming.value = false
@@ -166,7 +173,7 @@ const nextPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
-    if (reviewMode){
+    if (reviewMode) {
       placeholderText.value = '目前是全文阅读模式，你可以针对上传的文档提问'
     } else {
       placeholderText.value = '请输入内容'
@@ -186,7 +193,7 @@ const prevPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
-    if (reviewMode){
+    if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
       placeholderText.value = '请输入内容'
@@ -206,7 +213,7 @@ const delPage = () => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
-    if (reviewMode){
+    if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
       placeholderText.value = '请输入内容'
@@ -278,7 +285,6 @@ const contactBrainoor = () => {
     const arr = response['data']['data'][8]['data']
     // tagList.value = arr.map(([name, type]) => ({ name, type }));
     connected.value = true;
-    console.log(connected.value);
 
     tagList.value = [...tagList.value, ...arr.map(([name, type]) => ({ name, type }))];
 
@@ -290,12 +296,12 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在启动大脑门……', '启动成功，可以对话了  \n`shift-enter`换行  \n`/`键选择扩展标签']];
+      QAcontext.value = [['正在启动大脑门……', '启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
       md2html();
       // clearInterval(retryId);
-      
+
     }
-    
+
   }).catch(error => {
     console.error(`连接braindoor错误： ${error.message}`);
     retry();
@@ -534,18 +540,18 @@ function textAbbr(text) {
 
 function uploadFile(filePath) {
   axios.post('http://127.0.0.1:7860/run/upload_file', {
-      data: [filePath]
-    }).then(response => {
+    data: [filePath]
+  }).then(response => {
+    QAcontext.value = response['data']['data'][0]
+    inputRef.value.focus()
+    reviewMode = true;
+    setTimeout(() => {
       QAcontext.value = response['data']['data'][0]
-      inputRef.value.focus()
-      reviewMode = true;
-      setTimeout(() => {
-        QAcontext.value = response['data']['data'][0]
-        md2html()
-      }, 100);
-    }).catch(error => {
-      console.error(error);
-    });
+      md2html()
+    }, 100);
+  }).catch(error => {
+    console.error(error);
+  });
 }
 
 
@@ -581,7 +587,7 @@ onMounted(() => {
   inputArea.addEventListener('dragleave', () => {
     placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     inputArea.removeAttribute('style');
-});
+  });
 
   inputArea.addEventListener('drop', (event) => {
     inputArea.removeAttribute('style');
@@ -599,6 +605,9 @@ onMounted(() => {
     adjustHeight();
   }, 50)
   getState();
+
+
+
 })
 </script>
 
@@ -657,7 +666,7 @@ onMounted(() => {
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="16" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -668,7 +677,8 @@ onMounted(() => {
                 @confirm="delPage" placement="top">
                 <template #reference>
                   <Transition name="fade">
-                    <el-button :icon="Delete" text circle type="info" :disabled="streaming" v-show="!streaming && connected" />
+                    <el-button :icon="Delete" text circle type="info" :disabled="streaming"
+                      v-show="!streaming && connected" />
                   </Transition>
                 </template>
               </el-popconfirm>
@@ -692,10 +702,12 @@ onMounted(() => {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-            <el-col :span="8" class="right-align">
-              <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage" :disabled="streaming && !connected" />
+            <el-col :span="6" class="right-align">
+              <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
+                :disabled="streaming && !connected" />
               <el-text size='small' type="info">{{ pageInfo }}</el-text>
-              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage" :disabled="streaming && !connected" />
+              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
+                :disabled="streaming && !connected" />
             </el-col>
           </div>
         </el-row>
