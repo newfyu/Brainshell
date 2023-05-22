@@ -25,7 +25,25 @@ const md = Markdown({
 
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {
-    QAcontext.value[i][1] = md.render(QAcontext.value[i][1]);
+    let qa = QAcontext.value[i][1]
+    let frontSlot = qa.match(/<frontslot>(.*?)<\/frontslot>/s)
+    let rearSlot = qa.match(/<rearslot>(.*?)<\/rearslot>/s)
+    if (frontSlot) {
+      frontSlot = frontSlot[1]
+      qa = qa.replace(/<frontslot>(.*?)<\/frontslot>/s, '')
+    }
+    if (rearSlot) {
+      rearSlot = rearSlot[1]
+      qa = qa.replace(/<rearslot>(.*?)<\/rearslot>/s, '')
+    }
+    qa = md.render(qa)
+    if (frontSlot) {
+      qa = `<br><div>${frontSlot}</div>${qa}`
+    }
+    if (rearSlot) {
+      qa = `${qa}<br><div>${rearSlot}</div>`
+    }
+    QAcontext.value[i][1] = qa
   }
 }
 
@@ -296,7 +314,7 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在启动大脑门……', '启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
+      QAcontext.value = [['正在启动大脑门……', '<frontslot><details><summary>xxx</summary>yyyyyyy</detals></frontslot>启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
       md2html();
       // clearInterval(retryId);
 
