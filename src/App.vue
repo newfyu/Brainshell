@@ -41,7 +41,7 @@ const md2html = () => {
       qa = `<br><div>${frontSlot}</div>${qa}`
     }
     if (rearSlot) {
-      qa = `${qa}<br><div>${rearSlot}</div>`
+      qa = `${qa}<div>${rearSlot}</div><br>`
     }
     QAcontext.value[i][1] = qa
   }

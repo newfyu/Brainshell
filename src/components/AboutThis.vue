@@ -2,7 +2,7 @@
  
     <img alt="DeskBrain logo" src="../assets/logo.png" class="center">
     <el-row justify="center"><h1>DeskBrain</h1></el-row>
-    <el-row justify="center"><el-text size="large">Version 0.1.0</el-text></el-row>
+    <el-row justify="center"><el-text size="large">Version 0.2.0 beta</el-text></el-row>
       <el-row justify="center"><h3>帮助文档</h3> </el-row>
       <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row>
      
