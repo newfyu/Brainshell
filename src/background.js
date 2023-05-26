@@ -136,7 +136,6 @@ app.on('ready', async () => {
   const defaultMenu = Menu.getApplicationMenu();
   if (defaultMenu) {
     const viewMenu = defaultMenu.items.find(item => item.label === 'View').submenu;
-    console.log('xxx'+viewMenu);
     if (viewMenu) {
       const zoomInMenuItem = viewMenu.items.find(item => item.label === 'Zoom In');
       zoomInMenuItem.enabled = false;
