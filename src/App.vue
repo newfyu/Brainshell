@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
-import { ref, onMounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting } from '@element-plus/icons-vue'
+import { ref, onMounted, reactive, toRefs } from 'vue';
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -75,6 +75,7 @@ let defaultBodyHeight = currentWindow.getSize()[1] - 180 + winOffset // 默认�
 let bodyHeight = ref(`${defaultBodyHeight}px`)
 let retryCount = 0; // 当前已重试的次数
 
+
 const adjustHeight = () => {
   let tagHeight = 0
   if (tagBoxRef.value || tagBoxRef.value.getBoundingClientRect().height != 0) {
@@ -115,7 +116,7 @@ currentWindow.on('resize', () => {
 })
 
 // 提交text，发送请求到braindoor
-const sendRequests = () => {
+const sendRequests = (startIndex = 9999) => {
   // 发送总请求
   let question = inputText.value
   if (question) {
@@ -125,7 +126,7 @@ const sendRequests = () => {
     question = question + tagStr
 
     axios.post('http://127.0.0.1:7860/run/ask', {
-      data: [question, "", "", "default", "", "", "brainshell", "", ""]
+      data: [question, "", "", "default", "", "", "brainshell", "", startIndex]
     }).then(response => {
       clearInterval(intervalId); // 停止流式请求
       streaming.value = false
@@ -134,6 +135,7 @@ const sendRequests = () => {
         QAcontext.value = response['data']['data'][0]
         pageInfo.value = response['data']['data'][5]
         md2html()
+        scrollEnd();
       }, 100);
     }).catch(error => {
       console.error(error);
@@ -141,7 +143,7 @@ const sendRequests = () => {
     // 发送流式结果请求
     intervalId = setInterval(() => {
       axios.post('http://127.0.0.1:7860/run/get_ask_stream_answer', {
-        data: [question, []]
+        data: [question, [], startIndex]
       }).then(response => {
         QAcontext.value = response['data']['data'][0] // 数组，包含了所有历史记录
         md2html();
@@ -176,6 +178,7 @@ const newPage = () => {
     pageInfo.value = response['data']['data'][7]
     QAcontext.value = ""
     placeholderText.value = '请输入内容'
+    state.editable = state.editable.map(() => false)
   }).catch(error => {
     console.error(error);
   });
@@ -191,6 +194,7 @@ const nextPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
+    state.editable = state.editable.map(() => false)
     if (reviewMode) {
       placeholderText.value = '目前是全文阅读模式，你可以针对上传的文档提问'
     } else {
@@ -211,6 +215,7 @@ const prevPage = () => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
+    state.editable = state.editable.map(() => false)
     if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -231,6 +236,7 @@ const delPage = () => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
+    state.editable = state.editable.map(() => false)
     if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -441,6 +447,7 @@ function cancel() {
 
 // 处理用户输入按键指令，包括调用etag接口，上下键选择，回车键确认
 function onKeyDown(event) {
+  state.editable = state.editable.map(() => false)
   const key = event.key;
   if (showList.value) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
@@ -537,8 +544,6 @@ function onKeyDown(event) {
           }
         }, 500)
       }
-
-
       caretPosition = {
         display: "flex"
       }
@@ -627,6 +632,32 @@ onMounted(() => {
 
 
 })
+
+
+
+// edit mode
+let state = reactive({
+  editable: QAcontext.value.map(() => false),
+});
+
+let preQRefs = reactive({});
+
+let { editable } = toRefs(state);
+
+function toggleEditable(index) {
+  editable.value[index] = !editable.value[index];
+  if (!editable.value[index]) {
+    let preQText = preQRefs[`preQ-${index}`].textContent;
+    console.log(preQText)
+    inputText.value = preQText;
+    sendRequests(index);
+  }
+}
+
+function cancelEditable(index) {
+  editable.value[index] = false;
+}
+
 </script>
 
 ////////////////////////////////////////////
@@ -637,9 +668,18 @@ onMounted(() => {
         <TransitionGroup tag="div" name="slide">
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
-              <!-- <div class="Q" v-html="round[0]"></div> -->
-              <div class="Q">
-                <pre class="preQ">{{ round[0] }}</pre>
+              <div class="Q" style="position:relative;" @keydown.enter.exact="editable[index] ? toggleEditable(index) : null"
+                @keydown.esc="editable[index] ? cancelEditable(index) : null">
+                <div style="position:absolute; right:10px; bottom:8px;">
+                  <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
+                    v-if="!editable[index]" />
+                  <el-button size='small' v-if="editable[index]" type="primary"
+                    @click="toggleEditable(index)">提交</el-button>
+                  <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)">取消</el-button>
+                </div>
+                <pre class="preQ" :contenteditable="editable[index]"
+                  :ref="el => preQRefs[`preQ-${index}`] = el">{{ round[0] }}</pre>
+
               </div>
             </div>
             <div>
