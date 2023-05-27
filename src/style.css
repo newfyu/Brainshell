@@ -163,18 +163,18 @@ pre {
 .slide-enter-active,
 .slide-leave-active {
     /* transition: all 0.1s cubic-bezier(0.55, 0, 0.1, 1); */
-    transition: all 0.3s
+    transition: all 0.5s
 }
 
-/* .slide-enter-from,
+.slide-enter-from,
 .slide-leave-to {
     opacity: 0;
     transform: translateY(0px);
-} */
+}
 
-/* .slide-leave-active {
+.slide-leave-active {
     position: absolute;
-} */
+}
 
 /* 假设你想要上下平移的元素在向上滑动时在底部对齐 */
 .bottom-align {
