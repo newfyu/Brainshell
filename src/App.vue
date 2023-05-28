@@ -10,6 +10,7 @@ import { ElMessage } from 'element-plus';
 import pinyin from "pinyin";
 import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
+import CreateBase from './components/CreateBase.vue';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -779,9 +780,14 @@ function copyContent(index) {
       </div>
     </div>
     <el-drawer v-model="drawer" title="设置" :with-header="true" direction="btt" size="90%" destroy-on-close>
-      <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+      <el-tabs v-model="activeName" class="demo-tabs">
         <el-tab-pane label="常规" name="normal">
           <GeneralConfig />
+        </el-tab-pane>
+        <el-tab-pane label="建库" name="createBase">
+          <CreateBase />
+        </el-tab-pane>
+        <el-tab-pane label="更新库" name="updateBase">
         </el-tab-pane>
         <el-tab-pane label="关于" name="about">
           <AboutThis />

@@ -1,10 +1,30 @@
 <template>
-  <el-form label-position="right" label-width="80px">
+  <el-form label-position="right" label-width="100px">
     <el-form-item label="API key: ">
-      <el-input v-model="apikey" placeholder="输入OpenAI的API key" />
+      <el-tooltip content="输入OpenAI的API key" placement="top" :hide-after="hideAfter">
+        <el-input v-model="apikey" placeholder="输入OpenAI的API key" />
+      </el-tooltip>
     </el-form-item>
     <el-form-item label="Proxy: ">
-      <el-input v-model="proxy" placeholder="输入代理地址" />
+      <el-tooltip content="输入代理地址" placement="top" :hide-after="hideAfter">
+        <el-input v-model="proxy" placeholder="输入代理地址"/>
+      </el-tooltip>
+    </el-form-item>
+
+    <el-form-item label="最长输入: ">
+      <el-tooltip content="输入的最长token，超过后会转换为全文阅读模式" placement="right" :hide-after="hideAfter">
+        <el-input-number v-model="inputLimit" :step="step"/>
+      </el-tooltip>
+    </el-form-item>
+    <el-form-item label="最长上下文: ">
+      <el-tooltip content="对话最长的上下文token，超过后会截断" placement="right" :hide-after="hideAfter">
+      <el-input-number v-model="maxContext" :step="step" />
+      </el-tooltip>
+    </el-form-item>
+    <el-form-item label="修改对话保存: ">
+      <el-tooltip content="编辑对话重新生成后，是否保留原有的生成内容" placement="right" :hide-after="hideAfter">
+        <el-checkbox v-model="saveEdit" />
+    </el-tooltip>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="onSubmit">保存</el-button>
@@ -17,6 +37,11 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios';
 let apikey = ref('')
 let proxy = ref('')
+let inputLimit = ref(2000)
+let maxContext = ref(2000)
+let saveEdit = ref(false)
+let hideAfter = ref(0)
+let step = ref(500)
 
 const onSubmit = () => {
   // console.log(apikey.value, proxy.value)
@@ -29,6 +54,9 @@ const loadConfig = () => {
   }).then((response) => {
     apikey.value = response['data']['data'][0]
     proxy.value = response['data']['data'][5]
+    inputLimit.value = response['data']['data'][6]
+    maxContext.value = response['data']['data'][7]
+    saveEdit.value = response['data']['data'][8]
   }).catch(error => {
     console.error(`load config 失败： ${error.message}`);
   });
@@ -36,12 +64,12 @@ const loadConfig = () => {
 
 const saveConfig = () => {
   axios.post('http://127.0.0.1:7860/run/save_config_from_brainshell', {
-      data: [apikey.value, proxy.value]
-    }).then(() => {
-    }).catch(error => {
-      console.error(error);
-    });
-  }
+    data: [apikey.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value]
+  }).then(() => {
+  }).catch(error => {
+    console.error(error);
+  });
+}
 
 onMounted(() => {
   loadConfig()
@@ -49,6 +77,5 @@ onMounted(() => {
 
 </script>
   
-<style>
-</style>
+<style></style>
   
