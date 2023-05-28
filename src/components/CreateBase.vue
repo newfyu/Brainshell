@@ -39,7 +39,7 @@
 
     <el-form-item>
       <el-button type="primary" @click="onSubmit">创建</el-button>
-      <el-button type="warning" v-if="running"  @click="restartBraindoor">中止</el-button>
+      <el-button type="warning" v-show="running"  @click="restartBraindoor">中止</el-button>
     </el-form-item>
   </el-form>
     <el-text v-html="info"></el-text>
@@ -61,8 +61,7 @@ let hideAfter = ref(0)
 let info = ref('')
 let step = ref(500)
 let intervalId = null
-let running = false
-console.log(running)
+let running = ref(false)
 
 function chooseDir() {
   const { dialog } = require('electron').remote
@@ -92,7 +91,7 @@ const createBase = () => {
     })
     return
   } else {
-    running = true
+    running.value = true
     axios.post('http://127.0.0.1:7860/run/create_base', {
       data: [baseName.value, dirPath.value, fileTyep.value, chunkSize.value, chunkOverlap.value, maxChunk.value]
     }).then((response) => {
@@ -101,10 +100,10 @@ const createBase = () => {
       dirPath.value = ''
       fileTyep.value = []
       clearInterval(intervalId);
-      running = false
+      running.value = false
     }).catch(error => {
       console.error(error);
-      running = false
+      running.value = false
     });
 
     // 请求log
