@@ -198,11 +198,12 @@ ipcMain.on('render2main', (event, param1) => {
 ipcMain.on('restart-braindoor', () => {
   if (braindoorProcess) {
     braindoorProcess.kill();
+    braindoorProcess = null;
   }
   setTimeout(() => {
     console.log('restart braindoor');
     startBraindoor();
-  } , 1000);
+  } , 10000);
 })
 
 

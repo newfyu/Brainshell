@@ -63,6 +63,7 @@ let step = ref(500)
 let intervalId = null
 let running = ref(false)
 
+
 function chooseDir() {
   const { dialog } = require('electron').remote
   dialog.showOpenDialog({
