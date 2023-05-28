@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -628,22 +628,16 @@ onMounted(() => {
     adjustHeight();
   }, 50)
   getState();
-
-
-
 })
 
 
 
-// edit mode
+// 重新编辑对话按钮功能
 let state = reactive({
   editable: QAcontext.value.map(() => false),
 });
-
 let preQRefs = reactive({});
-
 let { editable } = toRefs(state);
-
 function toggleEditable(index) {
   editable.value[index] = !editable.value[index];
   if (!editable.value[index]) {
@@ -654,8 +648,16 @@ function toggleEditable(index) {
   }
 }
 
+// 取消编辑模式
 function cancelEditable(index) {
   editable.value[index] = false;
+}
+
+// 复制内容按钮功能
+const contentRefs = reactive({});
+function copyContent(index) {
+  const textToCopy = contentRefs[`A-${index}`].textContent;
+  navigator.clipboard.writeText(textToCopy)
 }
 
 </script>
@@ -668,7 +670,8 @@ function cancelEditable(index) {
         <TransitionGroup tag="div" name="slide">
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
-              <div class="Q" style="position:relative;" @keydown.enter.exact="editable[index] ? toggleEditable(index) : null"
+              <div class="Q" style="position:relative;"
+                @keydown.enter.exact="editable[index] ? toggleEditable(index) : null"
                 @keydown.esc="editable[index] ? cancelEditable(index) : null">
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
@@ -683,7 +686,11 @@ function cancelEditable(index) {
               </div>
             </div>
             <div>
-              <div class="A" v-html="round[1]"></div>
+              <div class="Acontainer" style="position:relative;" :ref="el => contentRefs[`A-${index}`] = el">
+                <div class="A" v-html="round[1]" />
+                <el-button :icon="CopyDocument" link color="black" size="large"
+                  style="position:absolute; right:10px; bottom:8px;" @click="copyContent(index)" />
+              </div>
             </div>
           </div>
         </TransitionGroup>
