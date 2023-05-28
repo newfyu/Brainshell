@@ -38,8 +38,8 @@
     </el-form-item>
 
     <el-form-item>
-      <el-button type="primary" @click="onSubmit">创建</el-button>
-      <el-button type="warning" v-show="running"  @click="restartBraindoor">中止</el-button>
+      <el-button type="primary" v-if="!running" @click="onSubmit">创建</el-button>
+      <el-button type="warning" v-if="running"  @click="restartBraindoor">中止</el-button>
     </el-form-item>
   </el-form>
     <el-text v-html="info"></el-text>
