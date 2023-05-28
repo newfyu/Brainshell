@@ -195,7 +195,15 @@ ipcMain.on('render2main', (event, param1) => {
   }
 })
 
-
+ipcMain.on('restart-braindoor', () => {
+  if (braindoorProcess) {
+    braindoorProcess.kill();
+  }
+  setTimeout(() => {
+    console.log('restart braindoor');
+    startBraindoor();
+  } , 1000);
+})
 
 
 //外部打开链接

@@ -1,5 +1,5 @@
 <template>
-  <el-row justify="center"> <el-text type="default"><h2>创建新的本地知识库</h2></el-text></el-row>
+  <el-row justify="center"> <el-text><h2>创建新的本地知识库</h2></el-text></el-row>
  
   <el-form label-position="right" label-width="100px">
     <el-form-item label="库名: ">
@@ -39,6 +39,7 @@
 
     <el-form-item>
       <el-button type="primary" @click="onSubmit">创建</el-button>
+      <el-button type="warning" v-if="running"  @click="restartBraindoor">中止</el-button>
     </el-form-item>
   </el-form>
     <el-text v-html="info"></el-text>
@@ -49,6 +50,7 @@ import { ref, onMounted } from 'vue'
 import { FolderAdd } from '@element-plus/icons-vue'
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import { ipcRenderer} from "electron"
 let baseName = ref('')
 let dirPath = ref('')
 let fileTyep = ref([])
@@ -59,6 +61,8 @@ let hideAfter = ref(0)
 let info = ref('')
 let step = ref(500)
 let intervalId = null
+let running = false
+console.log(running)
 
 function chooseDir() {
   const { dialog } = require('electron').remote
@@ -75,10 +79,11 @@ const onSubmit = () => {
   createBase()
 }
 
+function restartBraindoor() {
+    ipcRenderer.send('restart-braindoor')
+  }
 
 const createBase = () => {
-  console.log(baseName.value, dirPath.value, fileTyep.value, chunkSize.value, chunkOverlap.value, maxChunk.value)
-
   // 判断baseName, dirPath, fileTyep, chunkSize, chunkOverlap, maxChunk是否为空
   if (baseName.value === '' || dirPath.value === '' || fileTyep.value.length === 0 || chunkSize.value === '' || chunkOverlap.value === '' || maxChunk.value === '') {
     ElMessage({
@@ -87,6 +92,7 @@ const createBase = () => {
     })
     return
   } else {
+    running = true
     axios.post('http://127.0.0.1:7860/run/create_base', {
       data: [baseName.value, dirPath.value, fileTyep.value, chunkSize.value, chunkOverlap.value, maxChunk.value]
     }).then((response) => {
@@ -95,8 +101,10 @@ const createBase = () => {
       dirPath.value = ''
       fileTyep.value = []
       clearInterval(intervalId);
+      running = false
     }).catch(error => {
       console.error(error);
+      running = false
     });
 
     // 请求log

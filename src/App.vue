@@ -54,6 +54,7 @@ let inputText = ref('')  // 主输入框的内容
 let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
 const drawer = ref(false)
 const activeName = ref('normal')
+const hideAfter = ref(0)
 let currentWindow = remote.getCurrentWindow(); // 当前窗口
 let isLock = !currentWindow.isResizable() // 是否锁定窗口
 let winOffset = 0 // 窗口偏移量，用于微调一些组件的位置
@@ -732,8 +733,8 @@ function copyContent(index) {
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
-              <el-tooltip content="新建对话" placement="top">
+            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" >
+              <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                     v-show="!streaming && connected" />
@@ -748,17 +749,17 @@ function copyContent(index) {
                   </Transition>
                 </template>
               </el-popconfirm>
-              <el-tooltip content="无框" placement="top">
+              <el-tooltip content="无框" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
                     v-show="!streaming && connected" />
                 </Transition>
               </el-tooltip>
 
-              <el-tooltip content="拖动" placement="top">
+              <el-tooltip content="拖动" placement="top" :hide-after="hideAfter">
                 <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
               </el-tooltip>
-              <el-tooltip content="设置" placement="top">
+              <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
                 <el-button :icon="Setting" text circle type="info" v-show="!isLock && connected" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>

@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios';
+
 let apikey = ref('')
 let proxy = ref('')
 let inputLimit = ref(2000)
@@ -47,6 +48,9 @@ const onSubmit = () => {
   // console.log(apikey.value, proxy.value)
   saveConfig()
 }
+
+
+
 
 const loadConfig = () => {
   axios.post('http://127.0.0.1:7860/run/general_config', {
