@@ -16,7 +16,7 @@
       <el-row justify="center">QQ群：797515547</el-row>
       <el-row justify="center">邮箱：lhan12345@hotmail.com</el-row>
       <br>
-      <el-row justify="center"><el-text> Copyright © 2023 lhan.</el-text></el-row>
+      <el-row justify="center"><el-text> 贡献者：lhan, hjuan</el-text></el-row>
 
      
 </template>

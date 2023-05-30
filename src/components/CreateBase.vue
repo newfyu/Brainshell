@@ -42,7 +42,8 @@
       <el-button type="warning" v-if="running"  @click="restartBraindoor">中止</el-button>
     </el-form-item>
   </el-form>
-    <el-text v-html="info"></el-text>
+    <el-divider v-if="running" />
+    <el-text v-if="running" v-html="info"></el-text>
 </template>
   
 <script setup>
@@ -102,6 +103,7 @@ const createBase = () => {
       fileTyep.value = []
       clearInterval(intervalId);
       running.value = false
+      ElMessage({message: '创建成功',type: 'success',})
     }).catch(error => {
       console.error(error);
       running.value = false

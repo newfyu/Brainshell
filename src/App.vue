@@ -65,7 +65,7 @@ if (isLock) {
 }
 
 if (!isLock) {
-  QAcontext.value = [['正在连接braindoor……', '']];
+  QAcontext.value = [['正在启动……', '']];
   if (!isMac) {
     winOffset = -30
   }
