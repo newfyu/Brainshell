@@ -21,9 +21,10 @@
       <el-input-number v-model="maxContext" :step="step" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="修改对话保存: ">
-      <el-tooltip content="编辑对话重新生成后，是否保留原有的生成内容" placement="top" :hide-after="hideAfter">
-        <el-checkbox v-model="saveEdit" />
+    <el-form-item label="保留编辑分支: ">
+      <el-tooltip content="编辑对话并重新生成结果后，是否保留原有的对话内容" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="saveEdit" />
+        <!-- <el-checkbox v-model="saveEdit" /> -->
     </el-tooltip>
     </el-form-item>
     <el-form-item>

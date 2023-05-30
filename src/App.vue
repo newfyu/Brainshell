@@ -645,7 +645,6 @@ function toggleEditable(index) {
   editable.value[index] = !editable.value[index];
   if (!editable.value[index]) {
     let preQText = preQRefs[`preQ-${index}`].textContent;
-    console.log(preQText)
     inputText.value = preQText;
     sendRequests(index);
   }
@@ -653,6 +652,7 @@ function toggleEditable(index) {
 
 // 取消编辑模式
 function cancelEditable(index) {
+  preQRefs[`preQ-${index}`].textContent = QAcontext.value[index][0];
   editable.value[index] = false;
 }
 
