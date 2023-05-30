@@ -22,17 +22,17 @@
       </el-checkbox-group>
     </el-form-item>
     <el-form-item label="切片尺寸: ">
-      <el-tooltip content="长文本会被切块到小于该尺寸" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="长文本会被切块到小于该尺寸" placement="top" :hide-after="hideAfter">
         <el-input-number v-model="chunkSize" :step="step"/>
       </el-tooltip>
     </el-form-item>
     <el-form-item label="切片重叠: ">
-      <el-tooltip content="切片之间重叠的尺寸" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="切片之间重叠的尺寸" placement="top" :hide-after="hideAfter">
         <el-input-number v-model="chunkOverlap" />
       </el-tooltip>
     </el-form-item>
     <el-form-item label="最大切片数: ">
-      <el-tooltip content="单个文件允许的最多切片数，超过该数会丢弃" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="单个文件允许的最多切片数，超过该数会丢弃" placement="top" :hide-after="hideAfter">
         <el-input-number v-model="maxChunk" />
       </el-tooltip>
     </el-form-item>

@@ -12,17 +12,17 @@
     </el-form-item>
 
     <el-form-item label="最长输入: ">
-      <el-tooltip content="输入的最长token，超过后会转换为全文阅读模式" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="输入的最长token，超过后会转换为全文阅读模式" placement="top" :hide-after="hideAfter">
         <el-input-number v-model="inputLimit" :step="step"/>
       </el-tooltip>
     </el-form-item>
     <el-form-item label="最长上下文: ">
-      <el-tooltip content="对话最长的上下文token，超过后会截断" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="对话最长的上下文token，超过后会截断" placement="top" :hide-after="hideAfter">
       <el-input-number v-model="maxContext" :step="step" />
       </el-tooltip>
     </el-form-item>
     <el-form-item label="修改对话保存: ">
-      <el-tooltip content="编辑对话重新生成后，是否保留原有的生成内容" placement="right" :hide-after="hideAfter">
+      <el-tooltip content="编辑对话重新生成后，是否保留原有的生成内容" placement="top" :hide-after="hideAfter">
         <el-checkbox v-model="saveEdit" />
     </el-tooltip>
     </el-form-item>

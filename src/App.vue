@@ -11,6 +11,7 @@ import pinyin from "pinyin";
 import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
 import CreateBase from './components/CreateBase.vue';
+import UpdateBase from './components/UpdateBase.vue';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -789,6 +790,7 @@ function copyContent(index) {
           <CreateBase />
         </el-tab-pane>
         <el-tab-pane label="更新库" name="updateBase">
+          <UpdateBase />
         </el-tab-pane>
         <el-tab-pane label="关于" name="about">
           <AboutThis />
