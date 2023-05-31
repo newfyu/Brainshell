@@ -323,7 +323,7 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.0 beta  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
+      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.0  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
       md2html();
       // clearInterval(retryId);
 
