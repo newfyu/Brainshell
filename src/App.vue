@@ -113,6 +113,7 @@ let inputTags = ref([])
 let tagQuery = ""
 let reviewMode = false
 let placeholderText = ref('请输入内容');
+let showToolbar = ref(false)
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -127,6 +128,8 @@ const sendRequests = (startIndex = 9999) => {
     cancelToken = axios.CancelToken.source()
     const tagStr = tag2str()
     question = question + tagStr
+    const placeholder = placeholderText.value
+    placeholderText.value = '正在思考……'
 
     axios.post('http://127.0.0.1:7860/run/ask', {
       data: [question, "", "", "default", "", "", "brainshell", "", startIndex]
@@ -139,9 +142,11 @@ const sendRequests = (startIndex = 9999) => {
         pageInfo.value = response['data']['data'][5]
         md2html()
         scrollEnd();
+        placeholderText.value = placeholder
       }, 100);
     }).catch(error => {
       console.error(error);
+      placeholderText.value = placeholder
     });
     // 发送流式结果请求
     intervalId = setInterval(() => {
@@ -401,19 +406,6 @@ function tag2str() {
   }
 }
 
-// function scrollToItem(item) {
-//   const list = listRef.value;
-//   const scrollTop = list.scrollTop;
-//   const itemTop = item.offsetTop;
-//   const itemHeight = item.offsetHeight;
-//   const listHeight = list.clientHeight;
-//   if (itemTop < scrollTop) {
-//     list.scrollTop = itemTop;
-//   } else if (itemTop + itemHeight > scrollTop + listHeight) {
-//     list.scrollTop = itemTop + itemHeight - listHeight;
-//   }
-// }
-
 
 // 选择etag列表中的条目
 function selectItem(item) {
@@ -663,6 +655,13 @@ function copyContent(index) {
   navigator.clipboard.writeText(textToCopy)
 }
 
+const hideToolbar = () => {
+  setTimeout(() => {
+    showToolbar.value = false;
+  }, 2000);
+}
+
+
 </script>
 
 ////////////////////////////////////////////
@@ -724,7 +723,7 @@ function copyContent(index) {
           {{ tag.name }}
         </el-tag>
       </div>
-      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
+      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }" @mouseover="showToolbar=true" @mouseleave="hideToolbar" >
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
@@ -732,9 +731,10 @@ function copyContent(index) {
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
-        <el-row class="toolbar">
-          <div class="toolbar-inner">
-            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" >
+        <el-row class="toolbar" >
+          <div class="toolbar-inner" >
+            <Transition>
+            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" v-show="showToolbar || !isLock || (QAcontext.length > 0) || isInputFocus">
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -758,7 +758,7 @@ function copyContent(index) {
               </el-tooltip>
 
               <el-tooltip content="拖动" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
+                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock"/>
               </el-tooltip>
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
                 <el-button :icon="Setting" text circle type="info" v-show="!isLock && connected" :disabled="streaming"
@@ -770,7 +770,8 @@ function copyContent(index) {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-            <el-col :span="6" class="right-align">
+          </Transition>
+            <el-col :span="6" class="right-align" v-show="!streaming && connected && (showToolbar || !isLock) || isInputFocus">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
               <el-text size='small' type="info">{{ pageInfo }}</el-text>
