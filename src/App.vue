@@ -307,6 +307,8 @@ ipcRenderer.on('message-from-main', (event, arg) => {
   }
 });
 
+
+
 // 启动后尝试与braindoor进行连接
 const contactBrainoor = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
@@ -327,7 +329,10 @@ const contactBrainoor = () => {
     tagListCache = tagList.value.slice();
 
     if (!isLock) {
-      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.0  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签']];
+
+      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.0  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
+      
+      
       md2html();
       // clearInterval(retryId);
 
@@ -574,6 +579,13 @@ function uploadFile(filePath) {
 
 // 页面加载时的各种初始化
 onMounted(() => {
+
+  window.testFn = function() {
+        drawer.value = true;
+      }
+
+
+
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
     let flag = event.target.classList.contains('permeable');
@@ -622,6 +634,7 @@ onMounted(() => {
     adjustHeight();
   }, 50)
   getState();
+  
 })
 
 
