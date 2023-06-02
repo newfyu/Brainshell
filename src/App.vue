@@ -113,7 +113,6 @@ let inputTags = ref([])
 let tagQuery = ""
 let reviewMode = false
 let placeholderText = ref('请输入内容');
-let showToolbar = ref(false)
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -655,13 +654,6 @@ function copyContent(index) {
   navigator.clipboard.writeText(textToCopy)
 }
 
-const hideToolbar = () => {
-  setTimeout(() => {
-    showToolbar.value = false;
-  }, 2000);
-}
-
-
 </script>
 
 ////////////////////////////////////////////
@@ -723,7 +715,7 @@ const hideToolbar = () => {
           {{ tag.name }}
         </el-tag>
       </div>
-      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }" @mouseover="showToolbar=true" @mouseleave="hideToolbar" >
+      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
@@ -731,10 +723,9 @@ const hideToolbar = () => {
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
           </el-input>
         </el-row>
-        <el-row class="toolbar" >
-          <div class="toolbar-inner" >
-            <Transition>
-            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" v-show="showToolbar || !isLock || (QAcontext.length > 0) || isInputFocus">
+        <el-row class="toolbar">
+          <div class="toolbar-inner">
+            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" >
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -758,7 +749,7 @@ const hideToolbar = () => {
               </el-tooltip>
 
               <el-tooltip content="拖动" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock"/>
+                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
               </el-tooltip>
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
                 <el-button :icon="Setting" text circle type="info" v-show="!isLock && connected" :disabled="streaming"
@@ -770,8 +761,7 @@ const hideToolbar = () => {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-          </Transition>
-            <el-col :span="6" class="right-align" v-show="!streaming && connected && (showToolbar || !isLock) || isInputFocus">
+            <el-col :span="6" class="right-align" v-show="!streaming && connected">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
               <el-text size='small' type="info">{{ pageInfo }}</el-text>
