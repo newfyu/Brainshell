@@ -1,3 +1,20 @@
+html.light {
+    /* 自定义深色背景颜色 */
+    --el-bg-A: CornflowerBlue;
+    --el-bg-Q: Gray;
+    --el-bg-inputarea: white;
+    --el-color-li: #d9ecff
+  }
+
+html.dark {
+    /* 自定义深色背景颜色 */
+    --el-bg-A: #337ecc;
+    --el-bg-Q: #303133;
+    --el-bg-inputarea: #303133;
+    --el-color-li: #d9ecff
+  }
+
+
 .QAs {
     margin: 15px;
 }
@@ -5,7 +22,7 @@
 .Q {
     text-align: left;
     vertical-align: middle;
-    background-color: gray;
+    background-color: var(--el-bg-Q);
     color: white;
     padding-left: 10px;
     padding-right: 10px;
@@ -19,7 +36,7 @@
 .A {
     text-align: left;
     vertical-align: middle;
-    background-color: CornflowerBlue;
+    background-color: var(--el-bg-A);
     color: white;
     margin-top: 20px;
     padding-top: 1px;
@@ -46,6 +63,7 @@
 #textArea {
     border-radius: 10px 10px 0 0;
     /* border:2px solid white; */
+    background-color: unset;
 }
 
 
@@ -60,16 +78,15 @@
 
 .toolbar-inner {
     width: 100%;
-    background-color: white;
     display: flex;
     border-radius: 0 0 10px 10px;
     padding: 5px;
 }
 
 .inputAreaContainer {
-    /* border: 1px solid var(--el-border-color-darker); */
     border-radius: 10px;
     box-shadow: 0px 0px 3px #888888;
+    background-color: var(--el-bg-inputarea)
 }
 
 .inputAreaContainer:hover {
@@ -183,7 +200,7 @@ pre {
 }
 
 .popList {
-    background-color: white;
+    background-color: var(--el-bg-inputarea);
     max-height: 150px;
     border-radius: 10px;
     max-width: 300px;
@@ -214,7 +231,7 @@ ul {
 }
 
 .popList li.selected {
-    background-color: var(--el-color-primary-light-8);
+    background-color: var(--el-color-li);
     border-radius: 10px;
 }
 
