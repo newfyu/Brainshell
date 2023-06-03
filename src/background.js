@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme,systemPreferences } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
 const { spawn } = require('child_process');
@@ -287,3 +287,12 @@ if (!gotTheLock) {
 }
 
 
+
+ipcMain.handle('get-system-theme', (event) => {
+  const result =  nativeTheme.shouldUseDarkColors;
+  if (result) {
+    return 'dark';
+  } else {
+    return 'light';
+  }
+})

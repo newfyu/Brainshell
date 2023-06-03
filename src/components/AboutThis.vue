@@ -1,20 +1,19 @@
 <template>
  
     <img alt="DeskBrain logo" src="../assets/logo.png" class="center">
-    <el-row justify="center"><h1>DeskBrain</h1></el-row>
+    <el-row justify="center"><el-text><h1>DeskBrain</h1></el-text></el-row>
     <el-row justify="center"><el-text size="large">Version 0.2.0</el-text></el-row>
-      <el-row justify="center"><h3>帮助文档</h3> </el-row>
+      <el-row justify="center"><el-text><h3>帮助文档</h3></el-text></el-row>
       <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row>
      
 
-      <el-row justify="center"><h3>Github</h3></el-row>
-      <el-row justify="center">DeskBrain:&nbsp;<a href="https://github.com/newfyu/DeskBrain">https://github.com/newfyu/DeskBrain</a></el-row>
-      <el-row justify="center">Braindoor:&nbsp;<a href="https://github.com/newfyu/Braindoor">https://github.com/newfyu/Braindoor</a></el-row>
-      <el-row justify="center">Brainshell:&nbsp;<a href="https://github.com/newfyu/Brainshell">https://github.com/newfyu/Brainshell</a></el-row>
+      <el-row justify="center"><el-text><h3>Github</h3></el-text></el-row>
+      <el-row justify="center"><el-text>DeskBrain:&nbsp;<a href="https://github.com/newfyu/DeskBrain">https://github.com/newfyu/DeskBrain</a></el-text></el-row>
+      <el-row justify="center"><el-text>Braindoor:&nbsp;<a href="https://github.com/newfyu/Braindoor">https://github.com/newfyu/Braindoor</a></el-text></el-row>
+      <el-row justify="center"><el-text>Brainshell:&nbsp;<a href="https://github.com/newfyu/Brainshell">https://github.com/newfyu/Brainshell</a></el-text></el-row>
 
-      <el-row justify="center"><h3>反馈</h3></el-row>
-      <el-row justify="center">QQ群：797515547</el-row>
-      <el-row justify="center">邮箱：lhan12345@hotmail.com</el-row>
+      <el-row justify="center"><el-text><h3>反馈</h3></el-text></el-row>
+      <el-row justify="center"><el-text>邮箱：lhan12345@hotmail.com</el-text></el-row>
       <br>
       <el-row justify="center"><el-text> 贡献者：lhan, hjuan</el-text></el-row>
 

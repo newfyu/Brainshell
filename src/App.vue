@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, onMounted, reactive, toRefs } from 'vue';
+import { ref, onMounted, reactive, toRefs, provide, watch } from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
@@ -12,6 +12,8 @@ import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
 import CreateBase from './components/CreateBase.vue';
 import UpdateBase from './components/UpdateBase.vue';
+import 'element-plus/theme-chalk/dark/css-vars.css'
+
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -114,6 +116,36 @@ let tagQuery = ""
 let reviewMode = false
 let placeholderText = ref('请输入内容');
 
+
+
+
+
+// 设置主题
+let theme = ref(localStorage.getItem('theme') || 'auto')
+let themeHTML = ref('dark')
+const updateTheme = async () => {
+  if (theme.value === 'dark') {
+    themeHTML.value = 'dark'
+  } else if(theme.value === 'light'){
+    themeHTML.value = 'light';
+  } else if(theme.value === 'auto') {
+    themeHTML.value = await getSystemTheme();
+  }
+  if (themeHTML.value === 'dark') {
+    document.body.style.backgroundColor = "black";
+  } else {
+    document.body.style.backgroundColor = "#E5EAF3";
+  }
+  if (isLock) {
+    document.body.style.backgroundColor = "unset";
+  }
+}
+watch(theme, async (newVal) => {
+  localStorage.setItem('theme', newVal)
+  updateTheme()
+})
+provide('theme', theme)
+
 currentWindow.on('resize', () => {
   adjustHeight();
 })
@@ -174,7 +206,6 @@ const scrollEnd = () => {
   setTimeout(() => {
     scrollbarRef.value.setScrollTop(9999)
   }, 50)
-  //滚动到底部
 }
 
 // 新建页面
@@ -283,6 +314,23 @@ const lock = () => {
   ipcRenderer.send("render2main", "reloadWindow");
 }
 
+// 用于控制输入框自动透明
+const inputAreaFocus = () => {
+  const inputArea = document.querySelector('#inputArea');
+  inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';
+}
+
+
+// 用于控制输入框透明
+const inputAreaBlur = debounce(() => {
+  if (QAcontext.value.length === 0 && isLock && inputText.value === '') {
+    setTimeout(() => {
+      const inputArea = document.querySelector('#inputArea');
+      inputArea.style.backgroundColor = 'unset';
+    }, 5000);
+  }
+}, 500)
+
 const textAreaFocus = () => {
   isInputFocus.value = true
 }
@@ -331,8 +379,8 @@ const contactBrainoor = () => {
     if (!isLock) {
 
       QAcontext.value = [['正在启动……', 'DeskBrain v0.2.0  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
-      
-      
+
+
       md2html();
       // clearInterval(retryId);
 
@@ -576,15 +624,17 @@ function uploadFile(filePath) {
   });
 }
 
+const getSystemTheme = async () => {
+  const result = await ipcRenderer.invoke('get-system-theme')
+  return result
+}
 
 // 页面加载时的各种初始化
-onMounted(() => {
-
-  window.testFn = function() {
-        drawer.value = true;
-      }
-
-
+onMounted(async () => {
+  updateTheme()
+  window.testFn = function () {
+    drawer.value = true;
+  }
 
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
@@ -634,7 +684,7 @@ onMounted(() => {
     adjustHeight();
   }, 50)
   getState();
-  
+
 })
 
 
@@ -671,6 +721,7 @@ function copyContent(index) {
 
 ////////////////////////////////////////////
 <template>
+  <html :class="themeHTML">
   <el-row justify="center" align="bottom" class="QAs permeable" :style="{ height: bodyHeight }">
     <el-col :span="24" gutter="10" class="permeable">
       <el-scrollbar class="permeable" ref="scrollbarRef" :max-height="bodyHeight">
@@ -696,7 +747,7 @@ function copyContent(index) {
               <div class="Acontainer" style="position:relative;" :ref="el => contentRefs[`A-${index}`] = el">
                 <div class="A" v-html="round[1]" />
                 <el-button :icon="CopyDocument" link color="black" size="large"
-                  style="position:absolute; right:10px; bottom:8px;" @click="copyContent(index)" />
+                  style="position:absolute; right:10px; bottom:8px;" @click="copyContent(index)" v-show="connected"/>
               </div>
             </div>
           </div>
@@ -728,17 +779,18 @@ function copyContent(index) {
           {{ tag.name }}
         </el-tag>
       </div>
-      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }">
+      <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }" @mouseover="inputAreaFocus"
+        @mouseleave="inputAreaBlur">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
             :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
-            :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown">
+            :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown" autofocus>
           </el-input>
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave" >
+            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -802,6 +854,8 @@ function copyContent(index) {
       </el-tabs>
     </el-drawer>
   </el-footer>
+
+  </html>
 </template>
 
 ////////////////////////////////////////////
