@@ -315,16 +315,18 @@ const lock = () => {
 }
 
 // 用于控制输入框自动透明
+let transparentTimeout = null;
 const inputAreaFocus = () => {
   const inputArea = document.querySelector('#inputArea');
   inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';
+  clearTimeout(transparentTimeout);
 }
 
 
 // 用于控制输入框透明
 const inputAreaBlur = debounce(() => {
   if (QAcontext.value.length === 0 && isLock && inputText.value === '') {
-    setTimeout(() => {
+    transparentTimeout = setTimeout(() => {
       const inputArea = document.querySelector('#inputArea');
       inputArea.style.backgroundColor = 'unset';
     }, 5000);
@@ -354,7 +356,6 @@ ipcRenderer.on('message-from-main', (event, arg) => {
     newPage();
   }
 });
-
 
 
 // 启动后尝试与braindoor进行连接
@@ -733,7 +734,7 @@ function copyContent(index) {
                 @keydown.esc="editable[index] ? cancelEditable(index) : null">
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
-                    v-if="!editable[index]" />
+                    v-if="!editable[index]" v-show="connected" />
                   <el-button size='small' v-if="editable[index]" type="primary"
                     @click="toggleEditable(index)">提交</el-button>
                   <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)">取消</el-button>
