@@ -180,7 +180,7 @@ ipcMain.on('render2main', (event, param1) => {
       //     if (!win.isFocused()) {
       //       win.webContents.send('message-from-main', 'blurLongTime');
       //     }
-      //   }, 120000);
+      //   }, 5000);
       // })
     } else {
       const bounds = win.getBounds();

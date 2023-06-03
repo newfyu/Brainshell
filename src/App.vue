@@ -117,18 +117,15 @@ let reviewMode = false
 let placeholderText = ref('请输入内容');
 
 
-
-
-
 // 设置主题
 let theme = ref(localStorage.getItem('theme') || 'auto')
 let themeHTML = ref('dark')
 const updateTheme = async () => {
   if (theme.value === 'dark') {
     themeHTML.value = 'dark'
-  } else if(theme.value === 'light'){
+  } else if (theme.value === 'light') {
     themeHTML.value = 'light';
-  } else if(theme.value === 'auto') {
+  } else if (theme.value === 'auto') {
     themeHTML.value = await getSystemTheme();
   }
   if (themeHTML.value === 'dark') {
@@ -327,8 +324,10 @@ const inputAreaFocus = () => {
 const inputAreaBlur = debounce(() => {
   if (QAcontext.value.length === 0 && isLock && inputText.value === '') {
     transparentTimeout = setTimeout(() => {
-      const inputArea = document.querySelector('#inputArea');
-      inputArea.style.backgroundColor = 'unset';
+      if (QAcontext.value.length === 0 && isLock && inputText.value === '') {
+        const inputArea = document.querySelector('#inputArea');
+        inputArea.style.backgroundColor = 'unset';
+      }
     }, 5000);
   }
 }, 500)
@@ -350,12 +349,12 @@ const toolbarOnLeave = () => {
 }
 
 // 监听主进程发送的消息,一定时间内没有输入则触发隐藏，目前作废
-ipcRenderer.on('message-from-main', (event, arg) => {
-  console.log(arg); // 打印从主进程接收到的消息
-  if (arg === 'blurLongTime') {
-    newPage();
-  }
-});
+// ipcRenderer.on('message-from-main', (event, arg) => {
+//   console.log(arg); // 打印从主进程接收到的消息
+//   if (arg === 'blurLongTime') {
+
+//   }
+// });
 
 
 // 启动后尝试与braindoor进行连接
@@ -748,7 +747,7 @@ function copyContent(index) {
               <div class="Acontainer" style="position:relative;" :ref="el => contentRefs[`A-${index}`] = el">
                 <div class="A" v-html="round[1]" />
                 <el-button :icon="CopyDocument" link color="black" size="large"
-                  style="position:absolute; right:10px; bottom:8px;" @click="copyContent(index)" v-show="connected"/>
+                  style="position:absolute; right:10px; bottom:8px;" @click="copyContent(index)" v-show="connected" />
               </div>
             </div>
           </div>

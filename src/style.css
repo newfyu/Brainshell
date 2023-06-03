@@ -3,7 +3,8 @@ html.light {
     --el-bg-A: CornflowerBlue;
     --el-bg-Q: Gray;
     --el-bg-inputarea: white;
-    --el-color-li: #d9ecff
+    --el-color-li: #d9ecff;
+    --el-color-link: blue;
   }
 
 html.dark {
@@ -11,9 +12,13 @@ html.dark {
     --el-bg-A: #337ecc;
     --el-bg-Q: #303133;
     --el-bg-inputarea: #303133;
-    --el-color-li: #d9ecff
+    --el-color-li: #d9ecff;
+    --el-color-link: #c6e2ff;
   }
 
+a{
+    color: var(--el-color-link);
+}
 
 .QAs {
     margin: 15px;
