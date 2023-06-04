@@ -378,7 +378,7 @@ const contactBrainoor = () => {
 
     if (!isLock) {
 
-      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.1  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
+      QAcontext.value = [['正在启动……', 'DeskBrain v0.2.2  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
 
 
       md2html();

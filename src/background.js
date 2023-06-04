@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme,systemPreferences } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
 const { spawn } = require('child_process');
@@ -14,7 +14,9 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let win = null
+let tray = null
 let isLock = false
+let isQuiting = false;
 let braindoorProcess = null;
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -28,6 +30,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     hasShadow: shadow,
     alwaysOnTop: top,
     show: false,
+    skipTaskbar: true,
     minWidth: 400,
     minHeight: 600,
     // level: 'floating',
@@ -55,12 +58,6 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
   }
-
-  // win.on('closed', () => {
-  //   win = null
-  // })
-
-  // 监听窗口关闭事件
 }
 
 // Quit when all windows are closed.
@@ -93,7 +90,7 @@ app.on('window-all-closed', () => {
 
 
   if (process.platform !== 'darwin') {
-    // app.quit()
+    app.quit()
   }
 })
 
@@ -127,10 +124,38 @@ app.on('ready', async () => {
   // }
   startBraindoor()
   createWindow()
+  tray = new Tray(path.join(__static, 'tray.png'))
+  tray.on('click', () => {
+      win.show() // 显示窗口
+      win.focus() // 窗口获得焦点
+  })
+
+  win.on('close', (event) => {
+    if (!isQuiting) {
+      event.preventDefault() // 阻止窗口关闭
+      win.hide() // 隐藏窗口
+    } else {
+      win = null;
+      app.quit();
+    }
+  })
+
+  const contextMenu = Menu.buildFromTemplate([
+    // { label: '显示', click: () => win.show() },
+    { label: '隐藏', click: () => win.hide() },
+    { label: '退出', click: () => {
+      isQuiting = true;
+      win.close();
+    }}
+  ])
+  tray.setContextMenu(contextMenu)
+
   win.once('ready-to-show', () => {
     win.show();
     braindoorLogToRender();
   })
+
+  
 
   // 禁用缩放
   const defaultMenu = Menu.getApplicationMenu();
