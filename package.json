@@ -1,6 +1,6 @@
 {
-  "name": "deskbrain",
-  "version": "0.2.2",
+  "name": "opencopilot",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

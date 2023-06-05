@@ -1,14 +1,14 @@
 <template>
  
     <img alt="DeskBrain logo" src="../assets/logo.png" class="center">
-    <el-row justify="center"><el-text><h1>DeskBrain</h1></el-text></el-row>
-    <el-row justify="center"><el-text size="large">Version 0.2.2</el-text></el-row>
+    <el-row justify="center"><el-text><h1>OpenCopilot</h1></el-text></el-row>
+    <el-row justify="center"><el-text size="large">Version 0.3.0</el-text></el-row>
       <el-row justify="center"><el-text><h3>帮助文档</h3></el-text></el-row>
-      <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row>
+      <!-- <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row> -->
      
 
       <el-row justify="center"><el-text><h3>Github</h3></el-text></el-row>
-      <el-row justify="center"><el-text>DeskBrain:&nbsp;<a href="https://github.com/newfyu/DeskBrain">https://github.com/newfyu/DeskBrain</a></el-text></el-row>
+      <el-row justify="center"><el-text>OpenCopilot:&nbsp;<a href="https://github.com/newfyu/OpenCopilot">https://github.com/newfyu/OpenCopilot</a></el-text></el-row>
       <el-row justify="center"><el-text>Braindoor:&nbsp;<a href="https://github.com/newfyu/Braindoor">https://github.com/newfyu/Braindoor</a></el-text></el-row>
       <el-row justify="center"><el-text>Brainshell:&nbsp;<a href="https://github.com/newfyu/Brainshell">https://github.com/newfyu/Brainshell</a></el-text></el-row>
 
