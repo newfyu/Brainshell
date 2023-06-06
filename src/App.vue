@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, onMounted, reactive, toRefs, provide, watch } from 'vue';
+import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
@@ -115,6 +115,8 @@ let inputTags = ref([])
 let tagQuery = ""
 let reviewMode = false
 let placeholderText = ref('请输入内容');
+let showHistory = ref(false)
+let historyRef = ref(null)
 
 
 // 设置主题
@@ -378,7 +380,7 @@ const contactBrainoor = () => {
 
     if (!isLock) {
 
-      QAcontext.value = [['正在启动……', 'OpenCopilot v0.3.0  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
+      QAcontext.value = [['正在启动……', 'OpenCopilot v0.2.3  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
 
 
       md2html();
@@ -717,6 +719,16 @@ function copyContent(index) {
   navigator.clipboard.writeText(textToCopy)
 }
 
+const toggleHistory = () => {
+  showHistory.value = !showHistory.value;
+  if (showHistory.value){
+    console.log(historyRef)
+    nextTick(() => {
+      historyRef.value.focus(); 
+    })
+  }
+}
+
 </script>
 
 ////////////////////////////////////////////
@@ -772,6 +784,19 @@ function copyContent(index) {
           </ul>
         </div>
       </Transition>
+
+      <el-autocomplete
+        v-model="state1"
+        :fetch-suggestions="querySearch"
+        clearable
+        class="historyList"
+        placeholder="Please Input"
+        @select="handleSelect"
+        v-if="showHistory"
+        z-index="0"
+        ref = "historyRef"
+      />
+
 
       <div class="tagBox" ref="tagBoxRef">
         <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
@@ -829,7 +854,7 @@ function copyContent(index) {
             <el-col :span="6" class="right-align" v-show="!streaming && connected">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
-              <el-text size='small' type="info">{{ pageInfo }}</el-text>
+              <el-text size='small' type="info" @click="toggleHistory">{{ pageInfo }}</el-text>
               <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
                 :disabled="streaming && !connected" />
             </el-col>

@@ -135,7 +135,6 @@ app.on('ready', async () => {
       event.preventDefault() // 阻止窗口关闭
       win.hide() // 隐藏窗口
     } else {
-      win = null;
       app.quit();
     }
   })
@@ -145,7 +144,7 @@ app.on('ready', async () => {
     { label: '隐藏', click: () => win.hide() },
     { label: '退出', click: () => {
       isQuiting = true;
-      win.close();
+      app.quit();
     }}
   ])
   tray.setContextMenu(contextMenu)
