@@ -117,6 +117,9 @@ let reviewMode = false
 let placeholderText = ref('请输入内容');
 let showHistory = ref(false)
 let historyRef = ref(null)
+let queryResult = ref([]) // 历史记录查结果
+let query = ref(null) // 历史记录查询词
+const historyLoading = ref(false)
 
 
 // 设置主题
@@ -226,7 +229,7 @@ const newPage = () => {
 // 按下下一页按钮时，获取下一页的内容
 const nextPage = () => {
   axios.post('http://127.0.0.1:7860/run/next_page', {
-    data: []
+    data: ["","","",0]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -247,7 +250,26 @@ const nextPage = () => {
 // 按下前一页按钮时，获取上一页的内容
 const prevPage = () => {
   axios.post('http://127.0.0.1:7860/run/prev_page', {
-    data: []
+    data: ["","","",0]
+  }).then((response) => {
+    pageInfo.value = response['data']['data'][5]
+    QAcontext.value = response['data']['data'][0]
+    reviewMode = response['data']['data'][9]
+    state.editable = state.editable.map(() => false)
+    if (reviewMode) {
+      placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    } else {
+      placeholderText.value = '请输入内容'
+    }
+    md2html()
+  }).catch(error => {
+    console.error(error);
+  });
+}
+
+const jumpPage = (pageNum) => {
+  axios.post('http://127.0.0.1:7860/run/prev_page', {
+    data: ["","","",pageNum]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -264,6 +286,8 @@ const prevPage = () => {
     console.error(error);
   });
 }
+
+
 
 // 删除当前对话页面
 const delPage = () => {
@@ -380,7 +404,7 @@ const contactBrainoor = () => {
 
     if (!isLock) {
 
-      QAcontext.value = [['正在启动……', 'OpenCopilot v0.2.3  \n启动成功，可以对话了  \n`shift-enter`换行  \n`"/"`键选择扩展标签\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
+      QAcontext.value = [['正在启动……', '### OpenCopilot v0.3.0  \n- 启动成功，可以对话了  \n"- shift-enter"换行  \n- `"/"`键选择扩展标签  \n- 右下角页码可以查询对话历史\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
 
 
       md2html();
@@ -721,12 +745,44 @@ function copyContent(index) {
 
 const toggleHistory = () => {
   showHistory.value = !showHistory.value;
-  if (showHistory.value){
-    console.log(historyRef)
+  query.value = null;
+  if (showHistory.value) {
     nextTick(() => {
-      historyRef.value.focus(); 
+      historyRef.value.inputRef.focus(); 
     })
   }
+}
+
+const remoteMethod = (query) => {
+  historyLoading.value = true
+  // 从 api 获取历史记录
+  axios.post('http://127.0.0.1:7860/run/history_filter', {
+    data: [query]
+  }).then(response => {
+    // console.log(response['data']['data'][0])
+    const arr = response['data']['data'][0]['data']
+
+    // arr是一个数组，包括page,title,index,现在把它转为一个对象，分别为value,label,key
+    queryResult.value = arr.map((item) => {
+      return {
+        key: item[0],
+        label: item[1],
+        value: item[2]
+      }
+    })
+    historyLoading.value = false
+  }).catch(error => {
+    console.error(error);
+  });
+}
+
+const selectHistoryItem = (item) => {
+  jumpPage(item)
+}
+
+// 失去焦点后关闭历史记录
+const closeQuery = () => {
+  showHistory.value = false;
 }
 
 </script>
@@ -784,18 +840,24 @@ const toggleHistory = () => {
           </ul>
         </div>
       </Transition>
-
-      <el-autocomplete
-        v-model="state1"
-        :fetch-suggestions="querySearch"
-        clearable
-        class="historyList"
-        placeholder="Please Input"
-        @select="handleSelect"
-        v-if="showHistory"
-        z-index="0"
-        ref = "historyRef"
+      <el-select-v2 
+        v-model="query" 
+        filterable 
+        class="historyList" 
+        :options="queryResult"
+        placeholder="查询对话历史" 
+        style="width: 240px" 
+        v-if="showHistory" 
+        remote 
+        :remote-method="remoteMethod"
+        placement='top' 
+        :loading="historyLoading" 
+        :effect='themeHTML' 
+        ref="historyRef"
+        @change="selectHistoryItem"
+        @blur="closeQuery"
       />
+
 
 
       <div class="tagBox" ref="tagBoxRef">
@@ -854,8 +916,10 @@ const toggleHistory = () => {
             <el-col :span="6" class="right-align" v-show="!streaming && connected">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
-              <el-text size='small' type="info" @click="toggleHistory">{{ pageInfo }}</el-text>
-              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
+                <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">
+                  <el-text style="cursor:pointer" size='small' type="info" @click="toggleHistory">{{ pageInfo }}</el-text>
+                </el-tooltip>
+                <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
                 :disabled="streaming && !connected" />
             </el-col>
           </div>

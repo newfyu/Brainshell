@@ -5,6 +5,7 @@ html.light {
     --el-bg-inputarea: white;
     --el-color-li: #d9ecff;
     --el-color-link: blue;
+    --el-select-item: #303133
   }
 
 html.dark {
@@ -14,6 +15,7 @@ html.dark {
     --el-bg-inputarea: #303133;
     --el-color-li: #d9ecff;
     --el-color-link: #c6e2ff;
+    --el-select-item: #dedfe0
   }
 
 a{
@@ -249,7 +251,6 @@ ul {
 }
 
 
-
 .etag {
     margin-right: 5px;
     margin-left: 5px;
@@ -286,4 +287,16 @@ ul {
 
 #pop_scrollbar>div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default>div {
     width: 85%
+}
+
+.el-select-dropdown__option-item.hover {
+    background-color:  #79bbff !important;
+}
+
+.el-select-dropdown__option-item{
+    color: var(--el-select-item)
+}
+
+.el-select-v2__wrapper{
+    border-top-right-radius: 10px;
 }
