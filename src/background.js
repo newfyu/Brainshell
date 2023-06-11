@@ -17,6 +17,7 @@ let win = null
 let tray = null
 let isLock = false
 let isQuiting = false;
+let shiftMode = false;
 let braindoorProcess = null;
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -46,9 +47,6 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       zoomFactor: 1.0
     }
   })
-
-
-
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
@@ -57,7 +55,26 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     createProtocol('app')
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
-  }
+  }``
+  shiftMode = false
+
+  win.on('close', (event) => {
+    if (shiftMode){
+      win= null;
+      return
+    }
+
+    if (!isQuiting) {
+      event.preventDefault() // 阻止窗口关闭
+      win.hide() // 隐藏窗口
+    } else {
+      if (shiftMode){}
+      if (braindoorProcess) {
+        braindoorProcess.kill();
+      }
+      app.quit();
+    }
+  })
 }
 
 // Quit when all windows are closed.
@@ -82,16 +99,16 @@ app.on('window-all-closed', () => {
   // })
 
   // app.quit()
-  setTimeout(() => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      app.quit();
-    }
-  }, 5000); // 等待5秒钟
+  // setTimeout(() => {
+  //   if (BrowserWindow.getAllWindows().length === 0) {
+  //     app.quit();
+  //   }
+  // }, 5000); // 等待5秒钟
 
 
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  // if (process.platform !== 'darwin') {
+  //   app.quit()
+  // }
 })
 
 
@@ -130,14 +147,7 @@ app.on('ready', async () => {
       win.focus() // 窗口获得焦点
   })
 
-  win.on('close', (event) => {
-    if (!isQuiting) {
-      event.preventDefault() // 阻止窗口关闭
-      win.hide() // 隐藏窗口
-    } else {
-      app.quit();
-    }
-  })
+  
 
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
@@ -191,6 +201,7 @@ ipcMain.on('render2main', (event, param1) => {
   if (param1 === 'reloadWindow') {
     if (!isLock) { //执行锁定
       const bounds = win.getBounds();
+      shiftMode = true
       win.close()
       createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height, false, false, true)
       isLock = true
@@ -208,6 +219,7 @@ ipcMain.on('render2main', (event, param1) => {
       // })
     } else {
       const bounds = win.getBounds();
+      shiftMode = true
       win.close()
       createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
       isLock = false
@@ -225,7 +237,6 @@ ipcMain.on('restart-braindoor', () => {
     braindoorProcess = null;
   }
   setTimeout(() => {
-    console.log('restart braindoor');
     startBraindoor();
   } , 10000);
 })
@@ -282,17 +293,17 @@ const braindoorLogToRender = () => {
   });
 }
 
-app.on('before-quit', () => {
-  if (braindoorProcess) {
-    braindoorProcess.kill();
-  }
-});
+// app.on('before-quit', () => {
+//   if (braindoorProcess) {
+//     braindoorProcess.kill();
+//   }
+// });
 
-app.on('quit', () => {
-  if (braindoorProcess) {
-    braindoorProcess.kill();
-  }
-});
+// app.on('quit', () => {
+//   if (braindoorProcess) {
+//     braindoorProcess.kill();
+//   }
+// });
 
 
 // 单例锁，开发时时候可以注释掉
@@ -320,3 +331,5 @@ ipcMain.handle('get-system-theme', (event) => {
     return 'light';
   }
 })
+
+app.setName('OpenCopilot')
