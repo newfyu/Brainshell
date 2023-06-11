@@ -219,6 +219,7 @@ const newPage = () => {
     QAcontext.value = ""
     placeholderText.value = '请输入内容'
     state.editable = state.editable.map(() => false)
+    showHistory.value = false
   }).catch(error => {
     console.error(error);
   });
@@ -267,9 +268,9 @@ const prevPage = () => {
   });
 }
 
-const jumpPage = (pageNum) => {
+const jumpPage = (pageName) => {
   axios.post('http://127.0.0.1:7860/run/prev_page', {
-    data: ["","","",pageNum]
+    data: ["","","", pageName]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -298,6 +299,7 @@ const delPage = () => {
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
+    showHistory.value = false
     if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -360,6 +362,7 @@ const inputAreaBlur = debounce(() => {
 
 const textAreaFocus = () => {
   isInputFocus.value = true
+  showHistory.value = false
 }
 
 const textAreaBlur = () => {
@@ -765,9 +768,9 @@ const remoteMethod = (query) => {
     // arr是一个数组，包括page,title,index,现在把它转为一个对象，分别为value,label,key
     queryResult.value = arr.map((item) => {
       return {
-        key: item[0],
+        value: item[0],
         label: item[1],
-        value: item[2]
+        key: item[2]
       }
     })
     historyLoading.value = false
@@ -777,12 +780,13 @@ const remoteMethod = (query) => {
 }
 
 const selectHistoryItem = (item) => {
+  console.log(item)
   jumpPage(item)
 }
 
 // 失去焦点后关闭历史记录
 const closeQuery = () => {
-  showHistory.value = false;
+  // showHistory.value = false;
 }
 
 </script>
@@ -877,7 +881,7 @@ const closeQuery = () => {
         </el-row>
         <el-row class="toolbar">
           <div class="toolbar-inner">
-            <el-col :span="18" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+            <el-col :span="17" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -913,7 +917,7 @@ const closeQuery = () => {
                   v-show="streaming" @click="stopRequest">stop</el-button>
               </Transition>
             </el-col>
-            <el-col :span="6" class="right-align" v-show="!streaming && connected">
+            <el-col :span="7" class="right-align" v-show="!streaming && connected">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
                 <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">

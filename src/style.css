@@ -222,7 +222,7 @@ pre {
     position: absolute;
     display: inline-block;
     right: 0;
-    top: 10;
+    /* bottom: 0;       */
     z-index: 9999;
 }
 
@@ -299,4 +299,6 @@ ul {
 
 .el-select-v2__wrapper{
     border-top-right-radius: 10px;
+    background-color: var(--el-bg-inputarea);
 }
+
