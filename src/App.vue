@@ -123,7 +123,7 @@ const historyLoading = ref(false)
 
 
 // 设置主题
-let theme = ref(localStorage.getItem('theme') || 'auto')
+let theme = ref(localStorage.getItem('theme') || 'dark')
 let themeHTML = ref('dark')
 const updateTheme = async () => {
   if (theme.value === 'dark') {
@@ -407,7 +407,7 @@ const contactBrainoor = () => {
 
     if (!isLock) {
 
-      QAcontext.value = [['正在启动……', '### OpenCopilot v0.3.0  \n- 启动成功，可以对话了  \n"- shift-enter"换行  \n- `"/"`键选择扩展标签  \n- 右下角页码可以查询对话历史\n <rearslot>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
+      QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`shift-enter`  \n- 智能标签：`/`  \n- 新建对话：`cmd/ctrl + t`  \n- 查询历史：`cmd/ctrl + f`  \n <rearslot><br>首次使用需要设置OpenAI的key&nbsp;<a href="#" onClick="testFn()">点此设置</a></rearslot>']];
 
 
       md2html();
@@ -523,7 +523,46 @@ function cancel() {
 
 // 处理用户输入按键指令，包括调用etag接口，上下键选择，回车键确认
 function onKeyDown(event) {
-  state.editable = state.editable.map(() => false)
+  state.editable = state.editable.map(() => false) // 输入时禁止对话编辑
+
+
+  //新建page快捷键
+  if (event.ctrlKey && event.key === 't' && process.platform !== 'darwin') {
+    newPage();
+    return;
+  } else if (event.metaKey && event.key === 't' && process.platform === 'darwin') {
+    newPage();
+    return;
+  }
+
+  // 按下ctrl+y，显示历史记录查询窗口
+  if (event.ctrlKey && event.key === 'f' && process.platform !== 'darwin') {
+    toggleHistory();
+    return;
+  } else if (event.metaKey && event.key === 'f' && process.platform === 'darwin') {
+    toggleHistory();
+    return;
+  }
+
+  // 按下ctrl+[，显示上一页
+  if (event.ctrlKey && event.key === '[' && process.platform !== 'darwin') {
+    nextPage();
+    return;
+  } else if (event.metaKey && event.key === '[' && process.platform === 'darwin') {
+    nextPage();
+    return;
+  }
+
+  // 按下ctrl+]，显示下一页
+  if (event.ctrlKey && event.key === ']' && process.platform !== 'darwin') {
+    prevPage();
+    return;
+  } else if (event.metaKey && event.key === ']' && process.platform === 'darwin') {
+    prevPage();
+    return;
+  }
+
+
   const key = event.key;
   if (showList.value) {
     if ((key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight' || key === "Enter")) {
@@ -752,6 +791,17 @@ const toggleHistory = () => {
   if (showHistory.value) {
     nextTick(() => {
       historyRef.value.inputRef.focus(); 
+      historyRef.value.inputRef.addEventListener('keydown', handleQueryKeyPress)
+    })
+  }
+}
+
+// ESC键关闭历史记录查询
+function handleQueryKeyPress(event) {
+  if (event.keyCode === 27) { // Enter key
+    showHistory.value = false;
+    nextTick(() => {
+      inputRef.value.focus();
     })
   }
 }
@@ -782,11 +832,6 @@ const remoteMethod = (query) => {
 const selectHistoryItem = (item) => {
   console.log(item)
   jumpPage(item)
-}
-
-// 失去焦点后关闭历史记录
-const closeQuery = () => {
-  // showHistory.value = false;
 }
 
 </script>
@@ -859,10 +904,7 @@ const closeQuery = () => {
         :effect='themeHTML' 
         ref="historyRef"
         @change="selectHistoryItem"
-        @blur="closeQuery"
       />
-
-
 
       <div class="tagBox" ref="tagBoxRef">
         <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
