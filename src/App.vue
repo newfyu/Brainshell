@@ -299,7 +299,7 @@ const delPage = () => {
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
-    showHistory.value = false
+    // showHistory.value = false
     if (reviewMode) {
       placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
     } else {
@@ -318,8 +318,10 @@ const stopRequest = () => {
     data: []
   }).then(() => {
     scrollEnd()
+    placeholderText.value = '中断了，可重新输入'
   }).catch(error => {
     console.error(error);
+    placeholderText.value = '中断了，可重新输入'
   });
   clearInterval(intervalId);
   if (cancelToken) {
