@@ -38,6 +38,7 @@
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="onSubmit">保存</el-button>
+      <el-button @click="openLogFile">日志</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -45,6 +46,9 @@
 <script setup>
 import { ref, onMounted, inject, watch } from 'vue'
 import axios from 'axios';
+import { remote } from "electron"
+import os from 'os';
+import path from 'path';
 
 let apikey = ref('')
 let proxy = ref('')
@@ -86,6 +90,12 @@ const saveConfig = () => {
   }).catch(error => {
     console.error(error);
   });
+}
+
+const openLogFile = () => {
+  const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');
+  console.log(logFilePath);
+  remote.shell.openPath(logFilePath);
 }
 
 onMounted(() => {

@@ -60,7 +60,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
 
   win.on('close', (event) => {
     if (shiftMode){
-      win= null;
+      win = null;
       return
     }
 
@@ -68,7 +68,6 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       event.preventDefault() // 阻止窗口关闭
       win.hide() // 隐藏窗口
     } else {
-      if (shiftMode){}
       if (braindoorProcess) {
         braindoorProcess.kill();
       }
@@ -195,6 +194,11 @@ if (isDevelopment) {
   }
 }
 
+app.on('before-quit', () => {
+  isQuiting = true;
+  // 在这里可以执行一些清理操作，如保存数据等
+})
+
 
 // lock
 ipcMain.on('render2main', (event, param1) => {
@@ -209,14 +213,6 @@ ipcMain.on('render2main', (event, param1) => {
       win.once('ready-to-show', () => {
         win.show()
       })
-      // Lock模式下失去焦点后隐藏聊天内容
-      // win.on('blur', () => {
-      //   setTimeout(() => {
-      //     if (!win.isFocused()) {
-      //       win.webContents.send('message-from-main', 'blurLongTime');
-      //     }
-      //   }, 5000);
-      // })
     } else {
       const bounds = win.getBounds();
       shiftMode = true
@@ -293,18 +289,6 @@ const braindoorLogToRender = () => {
   });
 }
 
-// app.on('before-quit', () => {
-//   if (braindoorProcess) {
-//     braindoorProcess.kill();
-//   }
-// });
-
-// app.on('quit', () => {
-//   if (braindoorProcess) {
-//     braindoorProcess.kill();
-//   }
-// });
-
 
 // 单例锁，开发时时候可以注释掉
 const gotTheLock = app.requestSingleInstanceLock();
@@ -320,7 +304,6 @@ if (!gotTheLock) {
     }
   });
 }
-
 
 
 ipcMain.handle('get-system-theme', (event) => {

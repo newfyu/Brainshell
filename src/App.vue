@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument,Check,Close } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -159,7 +159,7 @@ const sendRequests = (startIndex = 9999) => {
   if (question) {
     streaming.value = true
     cancelToken = axios.CancelToken.source()
-    const tagStr = tag2str()
+    const tagStr = tag2str(question)
     question = question + tagStr
     const placeholder = placeholderText.value
     placeholderText.value = '正在思考……'
@@ -478,11 +478,20 @@ const handleTagClose = (tag) => {
 }
 
 // 生成tag字符串,加入到输入框中，发送给braindoor
-function tag2str() {
+function tag2str(question) {
   if (inputTags.value.length > 0) {
     let tagStrings = inputTags.value.map(tag => '#' + tag.name);
+
+    // 如果question中有tagStrings中相同的tag,则把该tag从tagStrings中删除
+    tagStrings = tagStrings.filter(tag => {
+      return question.indexOf(tag) === -1
+    })
+
     let result = tagStrings.join(' ');
-    result = "\n " + result
+    if (result !== ''){
+      result = "\n " + result
+    }
+    
     return result;
   } else {
     return ''
@@ -853,9 +862,9 @@ const selectHistoryItem = (item) => {
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
                     v-if="!editable[index]" v-show="connected" />
-                  <el-button size='small' v-if="editable[index]" type="primary"
-                    @click="toggleEditable(index)">提交</el-button>
-                  <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)">取消</el-button>
+                  <el-button size='small' v-if="editable[index]" type="primary" :icon="Check" style="position:absolute; right:40px; bottom:-20px;"
+                    @click="toggleEditable(index)"></el-button>
+                  <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)" :icon="Close" style="position:absolute; right:0px; bottom:-20px;" type="info"></el-button>
                 </div>
                 <pre class="preQ" :contenteditable="editable[index]"
                   :ref="el => preQRefs[`preQ-${index}`] = el">{{ round[0] }}</pre>
