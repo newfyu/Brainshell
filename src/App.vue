@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument,Check,Close, CloseBold } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CloseBold } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -230,7 +230,7 @@ const newPage = () => {
 // 按下下一页按钮时，获取下一页的内容
 const nextPage = () => {
   axios.post('http://127.0.0.1:7860/run/next_page', {
-    data: ["","","",0]
+    data: ["", "", "", 0]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -251,7 +251,7 @@ const nextPage = () => {
 // 按下前一页按钮时，获取上一页的内容
 const prevPage = () => {
   axios.post('http://127.0.0.1:7860/run/prev_page', {
-    data: ["","","",0]
+    data: ["", "", "", 0]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -270,7 +270,7 @@ const prevPage = () => {
 
 const jumpPage = (pageName) => {
   axios.post('http://127.0.0.1:7860/run/prev_page', {
-    data: ["","","", pageName]
+    data: ["", "", "", pageName]
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
@@ -487,11 +487,16 @@ function tag2str(question) {
       return question.indexOf(tag) === -1
     })
 
+    // 如果tagStrings中有#File,也把它从tagStrings中删除
+    tagStrings = tagStrings.filter(tag => {
+      return tag !== '#File'
+    })
+
     let result = tagStrings.join(' ');
-    if (result !== ''){
+    if (result !== '') {
       result = "\n " + result
     }
-    
+
     return result;
   } else {
     return ''
@@ -687,20 +692,41 @@ function textAbbr(text) {
   return result.toLowerCase();
 }
 
+/**
+ * Uploads a file to the server based on the input tags.
+ * If the input tags contain a tag with name including "File" and type "engine", the file is uploaded file path.
+ * Otherwise, the file is uploaded as text data.
+ * @param {string} filePath - The path of the file to be uploaded.
+ */
 function uploadFile(filePath) {
-  axios.post('http://127.0.0.1:7860/run/upload_file', {
-    data: [filePath]
-  }).then(response => {
-    QAcontext.value = response['data']['data'][0]
-    inputRef.value.focus()
-    reviewMode = true;
-    setTimeout(() => {
+  // inputTags.value is an array, each element includes name, type, and color. 
+  // Need to check if the name includes "File" and the type is "engine".
+  if (inputTags.value.some(tag => tag.name.includes('File') && tag.type === 'engine')) {
+    axios.post('http://127.0.0.1:7860/run/upload_file', {
+      data: [filePath]
+    }).then(response => {
+      setTimeout(() => {
+        QAcontext.value = response['data']['data'][0]
+        md2html()
+      }, 100);
+    }).catch(error => {
+      console.error(error);
+    });
+  } else {
+    axios.post('http://127.0.0.1:7860/run/upload_text', {
+      data: [filePath]
+    }).then(response => {
       QAcontext.value = response['data']['data'][0]
-      md2html()
-    }, 100);
-  }).catch(error => {
-    console.error(error);
-  });
+      inputRef.value.focus()
+      reviewMode = true;
+      setTimeout(() => {
+        QAcontext.value = response['data']['data'][0]
+        md2html()
+      }, 100);
+    }).catch(error => {
+      console.error(error);
+    });
+  }
 }
 
 const getSystemTheme = async () => {
@@ -801,7 +827,7 @@ const toggleHistory = () => {
   query.value = null;
   if (showHistory.value) {
     nextTick(() => {
-      historyRef.value.inputRef.focus(); 
+      historyRef.value.inputRef.focus();
       historyRef.value.inputRef.addEventListener('keydown', handleQueryKeyPress)
     })
   }
@@ -862,9 +888,10 @@ const selectHistoryItem = (item) => {
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
                     v-if="!editable[index]" v-show="connected" />
-                  <el-button size='small' v-if="editable[index]" type="primary" :icon="Check" style="position:absolute; right:40px; bottom:-20px;"
-                    @click="toggleEditable(index)"></el-button>
-                  <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)" :icon="Close" style="position:absolute; right:0px; bottom:-20px;" type="info"></el-button>
+                  <el-button size='small' v-if="editable[index]" type="primary" :icon="Check"
+                    style="position:absolute; right:40px; bottom:-20px;" @click="toggleEditable(index)"></el-button>
+                  <el-button size='small' v-if="editable[index]" @click="cancelEditable(index)" :icon="Close"
+                    style="position:absolute; right:0px; bottom:-20px;" type="info"></el-button>
                 </div>
                 <pre class="preQ" :contenteditable="editable[index]"
                   :ref="el => preQRefs[`preQ-${index}`] = el">{{ round[0] }}</pre>
@@ -900,22 +927,9 @@ const selectHistoryItem = (item) => {
           </ul>
         </div>
       </Transition>
-      <el-select-v2 
-        v-model="query" 
-        filterable 
-        class="historyList" 
-        :options="queryResult"
-        placeholder="查询对话历史" 
-        style="width: 240px" 
-        v-if="showHistory" 
-        remote 
-        :remote-method="remoteMethod"
-        placement='top' 
-        :loading="historyLoading" 
-        :effect='themeHTML' 
-        ref="historyRef"
-        @change="selectHistoryItem"
-      />
+      <el-select-v2 v-model="query" filterable class="historyList" :options="queryResult" placeholder="查询对话历史"
+        style="width: 240px" v-if="showHistory" remote :remote-method="remoteMethod" placement='top'
+        :loading="historyLoading" :effect='themeHTML' ref="historyRef" @change="selectHistoryItem" />
 
       <div class="tagBox" ref="tagBoxRef">
         <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
@@ -933,17 +947,13 @@ const selectHistoryItem = (item) => {
           </el-input>
         </el-row>
         <el-row class="toolbar">
-                <el-button :icon="CloseBold"
-                  type="warning"
-                  plain
-                  v-show="streaming" class="stop-button"
-                  size = "small"
-                  @click="stopRequest">
-                  Stop
-                </el-button>
+          <el-button :icon="CloseBold" type="info" plain size="small" v-show="streaming" class="stop-button"
+            @click="stopRequest">
+            Stop
+          </el-button>
 
           <div class="toolbar-inner">
-              <div style="width: 160px;"  @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+            <div style="width: 160px;" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -973,20 +983,20 @@ const selectHistoryItem = (item) => {
             </div>
 
             <el-tooltip content="可拖动区域" placement="top" :hide-after="hideAfter">
-            <div class="drag-area">
-            </div>
+              <div class="drag-area">
+              </div>
             </el-tooltip>
 
             <!-- <el-col :span="7" class="right-align" v-show="!streaming && connected"> -->
-              <div class="page-box">
+            <div class="page-box" v-show="!streaming && connected">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
-                <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">
-                  <el-text style="cursor:pointer" size='small' type="info" @click="toggleHistory">{{ pageInfo }}</el-text>
-                </el-tooltip>
-                <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
+              <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">
+                <el-text style="cursor:pointer" size='small' type="info" @click="toggleHistory">{{ pageInfo }}</el-text>
+              </el-tooltip>
+              <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
                 :disabled="streaming && !connected" />
-              </div>
+            </div>
           </div>
         </el-row>
       </div>

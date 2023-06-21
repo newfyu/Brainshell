@@ -305,8 +305,8 @@ ul {
 
 .stop-button{
     position: absolute;
-    left: 10px;
-    bottom: 10px;
+    left: 40%;
+    top: -32px;
     border-radius: 5px;
 }
 
