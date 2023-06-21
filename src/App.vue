@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Stopwatch, CircleCloseFilled, Pointer, Setting, Edit, CopyDocument,Check,Close } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument,Check,Close, CloseBold } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -933,8 +933,17 @@ const selectHistoryItem = (item) => {
           </el-input>
         </el-row>
         <el-row class="toolbar">
+                <el-button :icon="CloseBold"
+                  type="warning"
+                  plain
+                  v-show="streaming" class="stop-button"
+                  size = "small"
+                  @click="stopRequest">
+                  Stop
+                </el-button>
+
           <div class="toolbar-inner">
-            <el-col :span="17" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
+              <div style="width: 160px;"  @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
@@ -957,20 +966,19 @@ const selectHistoryItem = (item) => {
                 </Transition>
               </el-tooltip>
 
-              <el-tooltip content="拖动" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Pointer" text circle type="info" id="drag-handle" v-show="isLock" />
-              </el-tooltip>
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Setting" text circle type="info" v-show="!isLock && connected" :disabled="streaming"
+                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>
+            </div>
 
-              <Transition name="fade">
-                <el-button type="primary" :icon="CircleCloseFilled" :loading-icon="Stopwatch" text :loading="isLoading"
-                  v-show="streaming" @click="stopRequest">stop</el-button>
-              </Transition>
-            </el-col>
-            <el-col :span="7" class="right-align" v-show="!streaming && connected">
+            <el-tooltip content="可拖动区域" placement="top" :hide-after="hideAfter">
+            <div class="drag-area">
+            </div>
+            </el-tooltip>
+
+            <!-- <el-col :span="7" class="right-align" v-show="!streaming && connected"> -->
+              <div class="page-box">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
                 <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">
@@ -978,7 +986,7 @@ const selectHistoryItem = (item) => {
                 </el-tooltip>
                 <el-button :icon="ArrowRight" link circle type="info" @click="prevPage"
                 :disabled="streaming && !connected" />
-            </el-col>
+              </div>
           </div>
         </el-row>
       </div>
