@@ -37,8 +37,11 @@
         </el-radio-group>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="onSubmit">保存</el-button>
       <el-button @click="openLogFile">日志</el-button>
+      <el-button @click="openDir">插件目录</el-button>
+    </el-form-item>
+    <el-form-item>
+    <el-button type="primary" @click="onSubmit">保存</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -94,8 +97,12 @@ const saveConfig = () => {
 
 const openLogFile = () => {
   const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');
-  console.log(logFilePath);
   remote.shell.openPath(logFilePath);
+}
+
+const openDir = () => {
+  const dirPath = path.join(os.homedir(), 'braindoor');
+  remote.shell.openPath(dirPath);
 }
 
 onMounted(() => {

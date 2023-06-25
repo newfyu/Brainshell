@@ -30,22 +30,30 @@ const md = Markdown({
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {
     let qa = QAcontext.value[i][1]
-    let frontSlot = qa.match(/<frontslot>(.*?)<\/frontslot>/s)
-    let rearSlot = qa.match(/<rearslot>(.*?)<\/rearslot>/s)
-    if (frontSlot) {
-      frontSlot = frontSlot[1]
-      qa = qa.replace(/<frontslot>(.*?)<\/frontslot>/s, '')
+    let frontSlots = qa.match(/<frontslot>(.*?)<\/frontslot>/gs)
+    let rearSlots = qa.match(/<rearslot>(.*?)<\/rearslot>/gs)
+    let frontSlotTags = []
+    let rearSlotTags = []
+    if (frontSlots) {
+      for (let j = 0; j < frontSlots.length; j++) {
+        let frontSlot = frontSlots[j].replace(/<frontslot>|<\/frontslot>/g, '')
+        frontSlotTags.push(`<div>${frontSlot}</div>`)
+        qa = qa.replace(/<frontslot>(.*?)<\/frontslot>/s, '')
+      }
     }
-    if (rearSlot) {
-      rearSlot = rearSlot[1]
-      qa = qa.replace(/<rearslot>(.*?)<\/rearslot>/s, '')
+    if (rearSlots) {
+      for (let j = 0; j < rearSlots.length; j++) {
+        let rearSlot = rearSlots[j].replace(/<rearslot>|<\/rearslot>/g, '')
+        rearSlotTags.push(`<div>${rearSlot}</div>`)
+        qa = qa.replace(/<rearslot>(.*?)<\/rearslot>/s, '')
+      }
     }
     qa = md.render(qa)
-    if (frontSlot) {
-      qa = `<br><div>${frontSlot}</div>${qa}`
+    if (frontSlotTags.length > 0) {
+      qa = `<br>${frontSlotTags.join('')}${qa}`
     }
-    if (rearSlot) {
-      qa = `${qa}<div>${rearSlot}</div><br>`
+    if (rearSlotTags.length > 0) {
+      qa = `${qa}${rearSlotTags.join('')}<br>`
     }
     QAcontext.value[i][1] = qa
   }
