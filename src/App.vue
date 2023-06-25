@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CloseBold } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -955,9 +955,9 @@ const selectHistoryItem = (item) => {
           </el-input>
         </el-row>
         <el-row class="toolbar">
-          <el-button :icon="CloseBold" type="info" plain size="small" v-show="streaming" class="stop-button"
+          <el-button type="info" plain size="small" v-show="streaming" class="stop-button"
             @click="stopRequest">
-            Stop
+            ⏹ Stop
           </el-button>
 
           <div class="toolbar-inner">
