@@ -134,11 +134,6 @@ const historyLoading = ref(false)
 let removeTag = ref(localStorage.getItem('removeTag') === 'true' ? true : false)
 // 从localstorage中读取autoExec的值，用于是否自动执行applescript/vbscript代码
 // let autoExec = ref(localStorage.getItem('autoExec') === 'true' ? true : false)
-let enterSubmit = ref(localStorage.getItem('enterSubmit') === 'true' ? true : false)
-watch(enterSubmit, async (newVal) => {
-  localStorage.setItem('enterSubmit', newVal)
-})
-provide('enterSubmit', enterSubmit)
 
 // 设置主题
 let theme = ref(localStorage.getItem('theme') || 'dark')
@@ -909,7 +904,7 @@ const selectHistoryItem = (item) => {
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <div class="Q" style="position:relative;"
-                @keydown.enter.exact="editable[index] && enterSubmit? toggleEditable(index) : null"
+                @keydown.enter.exact="editable[index]? toggleEditable(index) : null"
                 @keydown.esc="editable[index] ? cancelEditable(index) : null">
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"

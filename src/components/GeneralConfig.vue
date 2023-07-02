@@ -26,11 +26,6 @@
         <el-switch v-model="saveEdit" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="回车提交修改: ">
-      <el-tooltip content="重新编辑输入内容时，回车是否触发提交" placement="top" :hide-after="hideAfter">
-        <el-switch v-model="enterSubmit" />
-      </el-tooltip>
-    </el-form-item>
     <el-form-item label="提交清除标签: ">
       <el-tooltip content="每次提交输入后清除所有扩展标签" placement="top" :hide-after="hideAfter">
         <el-switch v-model="removeTag" />
@@ -77,13 +72,6 @@ let autoExce = ref(false)
 
 
 const theme = inject('theme')
-const enterSubmit = inject('enterSubmit')
-const enterSubmitValue = ref(enterSubmit.value)
-watch(enterSubmitValue, (newVal) => {
-  enterSubmit.value = newVal
-})
-
-
 const themeValue = ref(theme.value)
 watch(themeValue, (newVal) => {
   theme.value = newVal
