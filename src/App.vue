@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, onMounted, reactive, toRefs, provide, watch, nextTick } from 'vue';
+import { ref, onMounted, reactive, toRefs, provide, watch, nextTick} from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
 import { ipcRenderer, remote } from "electron"
 import Markdown from 'markdown-it';
@@ -130,6 +130,15 @@ let queryResult = ref([]) // 历史记录查结果
 let query = ref(null) // 历史记录查询词
 const historyLoading = ref(false)
 
+// 从localstorage中读取removeTag的值, 用于是否在提交后是否删除标签
+let removeTag = ref(localStorage.getItem('removeTag') === 'true' ? true : false)
+// 从localstorage中读取autoExec的值，用于是否自动执行applescript/vbscript代码
+// let autoExec = ref(localStorage.getItem('autoExec') === 'true' ? true : false)
+let enterSubmit = ref(localStorage.getItem('enterSubmit') === 'true' ? true : false)
+watch(enterSubmit, async (newVal) => {
+  localStorage.setItem('enterSubmit', newVal)
+})
+provide('enterSubmit', enterSubmit)
 
 // 设置主题
 let theme = ref(localStorage.getItem('theme') || 'dark')
@@ -156,6 +165,11 @@ watch(theme, async (newVal) => {
   updateTheme()
 })
 provide('theme', theme)
+
+
+
+
+
 
 currentWindow.on('resize', () => {
   adjustHeight();
@@ -204,6 +218,11 @@ const sendRequests = (startIndex = 9999) => {
     }, 100);
     inputText.value = "";
     adjustHeight();
+    if (removeTag.value) {
+      inputTags.value = []
+    }
+
+
   } else {
     ElMessage({
       message: '没输入内容啊',
@@ -234,6 +253,9 @@ const newPage = () => {
   });
   clearInterval(intervalId);
   QAcontext.value = ""
+  if (removeTag.value) {
+      inputTags.value = []
+    }
 }
 
 // 按下下一页按钮时，获取下一页的内容
@@ -319,6 +341,9 @@ const delPage = () => {
   }).catch(error => {
     console.error(error);
   });
+  if (removeTag.value) {
+      inputTags.value = []
+    }
 }
 
 // 强行中断请求
@@ -387,15 +412,6 @@ const toolbarOnHover = () => {
 const toolbarOnLeave = () => {
   isLoading.value = true
 }
-
-// 监听主进程发送的消息,一定时间内没有输入则触发隐藏，目前作废
-// ipcRenderer.on('message-from-main', (event, arg) => {
-//   console.log(arg); // 打印从主进程接收到的消息
-//   if (arg === 'blurLongTime') {
-
-//   }
-// });
-
 
 // 启动后尝试与braindoor进行连接
 const contactBrainoor = () => {
@@ -818,6 +834,7 @@ function toggleEditable(index) {
   }
 }
 
+
 // 取消编辑模式
 function cancelEditable(index) {
   preQRefs[`preQ-${index}`].textContent = QAcontext.value[index][0];
@@ -892,7 +909,7 @@ const selectHistoryItem = (item) => {
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <div class="Q" style="position:relative;"
-                @keydown.enter.exact="editable[index] ? toggleEditable(index) : null"
+                @keydown.enter.exact="editable[index] && enterSubmit? toggleEditable(index) : null"
                 @keydown.esc="editable[index] ? cancelEditable(index) : null">
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"

@@ -22,14 +22,26 @@
       </el-tooltip>
     </el-form-item>
     <el-form-item label="保留编辑分支: ">
-      <el-tooltip content="编辑对话并重新生成结果后，是否保留原有的对话内容" placement="top" :hide-after="hideAfter">
+      <el-tooltip content="重新编辑输入内容并生成结果后，是否保留原有的对话内容分支" placement="top" :hide-after="hideAfter">
         <el-switch v-model="saveEdit" />
       </el-tooltip>
     </el-form-item>
+    <el-form-item label="回车提交修改: ">
+      <el-tooltip content="重新编辑输入内容时，回车是否触发提交" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="enterSubmit" />
+      </el-tooltip>
+    </el-form-item>
+    <el-form-item label="提交清除标签: ">
+      <el-tooltip content="每次提交输入后清除所有扩展标签" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="removeTag" />
+      </el-tooltip>
+    </el-form-item>
+    <el-form-item label="自动执行代码: ">
+      <el-tooltip content="applescript/vbscript插件生成的代码是否自动执行" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="autoExce" />
+      </el-tooltip>
+    </el-form-item>
     <el-form-item label="主题: ">
-      <!-- <el-tooltip content="更换主题，默认跟随系统" placement="top" :hide-after="hideAfter">
-        <el-switch v-model="themeValue" active-value="dark" inactive-value="light" />
-      </el-tooltip> -->
       <el-radio-group v-model="themeValue">
           <el-radio-button label="dark" />
           <el-radio-button label="light" />
@@ -47,7 +59,7 @@
 </template>
   
 <script setup>
-import { ref, onMounted, inject, watch } from 'vue'
+import { ref, onMounted, inject, watch} from 'vue'
 import axios from 'axios';
 import { remote } from "electron"
 import os from 'os';
@@ -60,15 +72,24 @@ let maxContext = ref(2000)
 let saveEdit = ref(false)
 let hideAfter = ref(0)
 let step = ref(500)
+let removeTag = ref(false)
+let autoExce = ref(false)
+
 
 const theme = inject('theme')
+const enterSubmit = inject('enterSubmit')
+const enterSubmitValue = ref(enterSubmit.value)
+watch(enterSubmitValue, (newVal) => {
+  enterSubmit.value = newVal
+})
+
+
 const themeValue = ref(theme.value)
 watch(themeValue, (newVal) => {
   theme.value = newVal
 })
 
 const onSubmit = () => {
-  // console.log(apikey.value, proxy.value)
   saveConfig()
 }
 
@@ -93,6 +114,9 @@ const saveConfig = () => {
   }).catch(error => {
     console.error(error);
   });
+  // UI配置值保存到localStorage中
+  localStorage.setItem('removeTag', removeTag.value)
+  localStorage.setItem('autoExce', autoExce.value)
 }
 
 const openLogFile = () => {
@@ -106,7 +130,11 @@ const openDir = () => {
 }
 
 onMounted(() => {
-  loadConfig();
+  // 从localStorage中读取一些UI配置
+  removeTag.value = localStorage.getItem('removeTag') === "true" 
+  autoExce.value = localStorage.getItem('autoExce') === "true"
+  // 从服务端读取一些配置
+  loadConfig(); 
 })
 
 </script>
