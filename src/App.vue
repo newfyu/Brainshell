@@ -13,7 +13,8 @@ import AboutThis from './components/AboutThis.vue';
 import CreateBase from './components/CreateBase.vue';
 import UpdateBase from './components/UpdateBase.vue';
 import 'element-plus/theme-chalk/dark/css-vars.css'
-
+import markdownItCopy  from 'markdown-it-code-copy';
+import MarkdownItTaskLists from 'markdown-it-task-lists';
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -25,7 +26,7 @@ const md = Markdown({
       : md.utils.escapeHtml(str);
     return `<pre class="hljs"><code>${code}</code></pre>`;
   },
-});
+}).use(MarkdownItTaskLists).use(markdownItCopy,{iconClass:'code-copy-button',iconStyle:'font-size: 12px; opacity: 0.8;'});
 
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {

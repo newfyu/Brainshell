@@ -1,3 +1,6 @@
+@import "~@fortawesome/fontawesome-free/css/all.css";
+
+
 html.light {
     /* 自定义深色背景颜色 */
     --el-bg-A: CornflowerBlue;
@@ -321,3 +324,9 @@ ul {
     justify-content: flex-end;
     width:90px
 }
+
+.code-copy-button::before {
+    content: "\f24d"; /* 这是 Font Awesome 的 "复制" 图标的代码 */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 300;
+  }
