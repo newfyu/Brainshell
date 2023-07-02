@@ -26,7 +26,7 @@ const md = Markdown({
       : md.utils.escapeHtml(str);
     return `<pre class="hljs"><code>${code}</code></pre>`;
   },
-}).use(MarkdownItTaskLists).use(markdownItCopy,{iconClass:'code-copy-button',iconStyle:'font-size: 12px; opacity: 0.8;'});
+}).use(MarkdownItTaskLists).use(markdownItCopy,{iconClass:'code-copy-button',iconStyle:'font-size: 12px; opacity: 0.8', buttonStyle:'position: absolute; top: 6px; right: 0px; cursor: pointer; outline: none; background: transparent;border: none; color: white'});
 
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {
