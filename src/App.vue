@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick} from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
-import { ipcRenderer, remote } from "electron"
+import { ipcRenderer, remote, clipboard } from "electron"
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
@@ -191,9 +191,12 @@ const sendRequests = (startIndex = 9999) => {
       setTimeout(() => {
         QAcontext.value = response['data']['data'][0]
         pageInfo.value = response['data']['data'][5]
+        placeholderText.value = placeholder
         md2html()
         scrollEnd();
-        placeholderText.value = placeholder
+        nextTick(() => {
+          addCodeCopy()
+    })
       }, 100);
     }).catch(error => {
       console.error(error);
@@ -262,12 +265,16 @@ const nextPage = () => {
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
+    
     if (reviewMode) {
       placeholderText.value = '目前是全文阅读模式，你可以针对上传的文档提问'
     } else {
       placeholderText.value = '请输入内容'
     }
     md2html()
+    nextTick(() => {
+      addCodeCopy()
+    })
     // scrollEnd()
   }).catch(error => {
     console.error(error);
@@ -289,6 +296,9 @@ const prevPage = () => {
       placeholderText.value = '请输入内容'
     }
     md2html()
+    nextTick(() => {
+      addCodeCopy()
+    })
   }).catch(error => {
     console.error(error);
   });
@@ -308,7 +318,9 @@ const jumpPage = (pageName) => {
       placeholderText.value = '请输入内容'
     }
     md2html()
-    // scrollEnd()
+    nextTick(() => {
+      addCodeCopy()
+    })
   }).catch(error => {
     console.error(error);
   });
@@ -332,7 +344,9 @@ const delPage = () => {
       placeholderText.value = '请输入内容'
     }
     md2html()
-    // scrollEnd()
+    nextTick(() => {
+      addCodeCopy()
+    })
   }).catch(error => {
     console.error(error);
   });
@@ -892,6 +906,23 @@ const selectHistoryItem = (item) => {
   jumpPage(item)
 }
 
+
+function addCodeCopy(){
+  // 获取具有 markdown-it-code-copy 类的元素
+  const copyButtons = document.querySelectorAll(".markdown-it-code-copy");
+  // 为每个按钮添加点击事件监听器
+  copyButtons.forEach(button => {
+    button.addEventListener("click", function() {
+      const textToCopy = this.getAttribute("data-clipboard-text");
+      // 将文本复制到剪贴板
+      if (textToCopy) {
+        clipboard.writeText(textToCopy)
+      }
+    });
+  });
+
+}
+
 </script>
 
 ////////////////////////////////////////////
@@ -1045,4 +1076,5 @@ const selectHistoryItem = (item) => {
 
 ////////////////////////////////////////////
 
-<style src="./style.css"></style>
+<style src="./style.css">
+</style>
