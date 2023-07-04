@@ -67,9 +67,14 @@ let maxContext = ref(2000)
 let saveEdit = ref(false)
 let hideAfter = ref(0)
 let step = ref(500)
-let removeTag = ref(false)
+
 let autoExce = ref(false)
 
+const removeTag = inject('removeTag')
+const removeTagLocal = ref(removeTag.value)
+watch(removeTagLocal, (newVal) => {
+  removeTag.value = newVal
+})
 
 const theme = inject('theme')
 const themeValue = ref(theme.value)
@@ -106,6 +111,8 @@ const saveConfig = () => {
   localStorage.setItem('removeTag', removeTag.value)
   localStorage.setItem('autoExce', autoExce.value)
 }
+
+
 
 const openLogFile = () => {
   const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');

@@ -132,8 +132,10 @@ const historyLoading = ref(false)
 
 // 从localstorage中读取removeTag的值, 用于是否在提交后是否删除标签
 let removeTag = ref(localStorage.getItem('removeTag') === 'true' ? true : false)
-// 从localstorage中读取autoExec的值，用于是否自动执行applescript/vbscript代码
-// let autoExec = ref(localStorage.getItem('autoExec') === 'true' ? true : false)
+watch(removeTag, (newVal) => {
+  localStorage.setItem('removeTag', newVal)
+})
+provide('removeTag', removeTag)
 
 // 设置主题
 let theme = ref(localStorage.getItem('theme') || 'dark')
