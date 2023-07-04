@@ -170,6 +170,10 @@ app.on('ready', async () => {
   if (defaultMenu) {
     const viewMenu = defaultMenu.items.find(item => item.label === 'View').submenu;
     if (viewMenu) {
+      const reloadMenuItem = viewMenu.items.find(item => item.label === 'Reload');
+      reloadMenuItem.enabled = false;
+      const forceReloadMenuItem = viewMenu.items.find(item => item.label === 'Force Reload');
+      forceReloadMenuItem.enabled = false;
       const zoomInMenuItem = viewMenu.items.find(item => item.label === 'Zoom In');
       zoomInMenuItem.enabled = false;
       const zoomOutMenuItem = viewMenu.items.find(item => item.label === 'Zoom Out');

@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios';
-import { ref, onMounted, reactive, toRefs, provide, watch, nextTick} from 'vue';
+import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
 import { ipcRenderer, remote, clipboard } from "electron"
 import Markdown from 'markdown-it';
@@ -13,7 +13,7 @@ import AboutThis from './components/AboutThis.vue';
 import CreateBase from './components/CreateBase.vue';
 import UpdateBase from './components/UpdateBase.vue';
 import 'element-plus/theme-chalk/dark/css-vars.css'
-import markdownItCopy  from 'markdown-it-code-copy';
+import markdownItCopy from 'markdown-it-code-copy';
 import MarkdownItTaskLists from 'markdown-it-task-lists';
 
 const md = Markdown({
@@ -26,7 +26,7 @@ const md = Markdown({
       : md.utils.escapeHtml(str);
     return `<pre class="hljs"><code>${code}</code></pre>`;
   },
-}).use(MarkdownItTaskLists).use(markdownItCopy,{iconClass:'code-copy-button',iconStyle:'font-size: 12px; opacity: 0.8', buttonStyle:'position: absolute; top: 6px; right: 0px; cursor: pointer; outline: none; background: transparent;border: none; color: white'});
+}).use(MarkdownItTaskLists).use(markdownItCopy, { iconClass: 'code-copy-button', iconStyle: 'font-size: 12px; opacity: 0.8', buttonStyle: 'position: absolute; top: 6px; right: 0px; cursor: pointer; outline: none; background: transparent;border: none; color: white' });
 
 const md2html = () => {
   for (let i = 0; i < QAcontext.value.length; i++) {
@@ -196,7 +196,7 @@ const sendRequests = (startIndex = 9999) => {
         scrollEnd();
         nextTick(() => {
           addCodeCopy()
-    })
+        })
       }, 100);
     }).catch(error => {
       console.error(error);
@@ -252,8 +252,8 @@ const newPage = () => {
   clearInterval(intervalId);
   QAcontext.value = ""
   if (removeTag.value) {
-      inputTags.value = []
-    }
+    inputTags.value = []
+  }
 }
 
 // 按下下一页按钮时，获取下一页的内容
@@ -265,7 +265,7 @@ const nextPage = () => {
     QAcontext.value = response['data']['data'][0]
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
-    
+
     if (reviewMode) {
       placeholderText.value = '目前是全文阅读模式，你可以针对上传的文档提问'
     } else {
@@ -351,8 +351,8 @@ const delPage = () => {
     console.error(error);
   });
   if (removeTag.value) {
-      inputTags.value = []
-    }
+    inputTags.value = []
+  }
 }
 
 // 强行中断请求
@@ -769,12 +769,7 @@ const getSystemTheme = async () => {
 }
 
 // 页面加载时的各种初始化
-onMounted(async () => {
-  updateTheme()
-  window.testFn = function () {
-    drawer.value = true;
-  }
-
+function addEventListeners() {
   let win = remote.getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
     let flag = event.target.classList.contains('permeable');
@@ -816,8 +811,57 @@ onMounted(async () => {
     uploadFile(filePath)
     event.preventDefault();
   })
+}
 
-  // dragHandle.value = document.getElementById('drag-handle');
+function removeEventListeners() {
+  let win = remote.getCurrentWindow();
+  window.removeEventListener('mousemove', () => {
+    let flag = event.target.classList.contains('permeable');
+    if (flag && isLock) {
+      win.setIgnoreMouseEvents(true, { forward: true });
+    }
+    else {
+      win.setIgnoreMouseEvents(false);
+    }
+  })
+
+  win.off('move', debounce(() => {
+    setState();
+  }))
+
+  win.off('resize', debounce(() => {
+    setState();
+  }))
+
+  const inputArea = document.querySelector('#inputArea');
+  inputArea.removeEventListener('dragover', () => {
+    placeholderText.value = '松开鼠标传入文件'
+    inputArea.style.border = '2px dashed #555';
+    inputArea.style.borderWidth = '2px';
+    event.preventDefault();
+  })
+  inputArea.removeEventListener('dragleave', () => {
+    placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    inputArea.removeAttribute('style');
+  });
+
+  inputArea.removeEventListener('drop', () => {
+    inputArea.removeAttribute('style');
+    const filePath = event.dataTransfer.files[0].path
+    placeholderText.value = '目前是文档问答模式，你可以针对上传的文档提问'
+    console.log(filePath)
+    // 把文件传入braindoor并切块
+    uploadFile(filePath)
+    event.preventDefault();
+  })
+}
+
+onMounted(async () => {
+  updateTheme()
+  window.testFn = function () {
+    drawer.value = true;
+  }
+  addEventListeners();
   contactBrainoor();
   setTimeout(() => {
     adjustHeight();
@@ -826,6 +870,10 @@ onMounted(async () => {
 
 })
 
+
+onUnmounted(() => {
+  removeEventListeners();
+})
 
 
 // 重新编辑对话按钮功能
@@ -907,12 +955,12 @@ const selectHistoryItem = (item) => {
 }
 
 
-function addCodeCopy(){
+function addCodeCopy() {
   // 获取具有 markdown-it-code-copy 类的元素
   const copyButtons = document.querySelectorAll(".markdown-it-code-copy");
   // 为每个按钮添加点击事件监听器
   copyButtons.forEach(button => {
-    button.addEventListener("click", function() {
+    button.addEventListener("click", function () {
       const textToCopy = this.getAttribute("data-clipboard-text");
       // 将文本复制到剪贴板
       if (textToCopy) {
@@ -935,7 +983,7 @@ function addCodeCopy(){
           <div class="grid-content QA permeable" v-for="(round, index) in QAcontext" :key="index">
             <div>
               <div class="Q" style="position:relative;"
-                @keydown.enter.exact="editable[index]? toggleEditable(index) : null"
+                @keydown.enter.exact="editable[index] ? toggleEditable(index) : null"
                 @keydown.esc="editable[index] ? cancelEditable(index) : null">
                 <div style="position:absolute; right:10px; bottom:8px;">
                   <el-button :icon="Edit" link color="black" size="large" @click="toggleEditable(index)"
@@ -999,8 +1047,7 @@ function addCodeCopy(){
           </el-input>
         </el-row>
         <el-row class="toolbar">
-          <el-button type="info" plain size="small" v-show="streaming" class="stop-button"
-            @click="stopRequest">
+          <el-button type="info" plain size="small" v-show="streaming" class="stop-button" @click="stopRequest">
             ⏹ Stop
           </el-button>
 
@@ -1076,5 +1123,4 @@ function addCodeCopy(){
 
 ////////////////////////////////////////////
 
-<style src="./style.css">
-</style>
+<style src="./style.css"></style>
