@@ -75,6 +75,7 @@ if (isLock) {
   winOffset = 30
 }
 
+
 if (!isLock) {
   QAcontext.value = [['正在启动……', '']];
   if (!isMac) {
@@ -130,12 +131,14 @@ let queryResult = ref([]) // 历史记录查结果
 let query = ref(null) // 历史记录查询词
 const historyLoading = ref(false)
 
-// 从localstorage中读取removeTag的值, 用于是否在提交后是否删除标签
-let removeTag = ref(localStorage.getItem('removeTag') === 'true' ? true : false)
-watch(removeTag, (newVal) => {
-  localStorage.setItem('removeTag', newVal)
+// 从localstorage中读取keepTag的值, 默认true,用于是否在提交后是否删除标签
+let keepTag = ref(localStorage.getItem('keepTag') === 'false' ? false : true)
+watch(keepTag, (newVal) => {
+  localStorage.setItem('keepTag', newVal)
 })
-provide('removeTag', removeTag)
+provide('keepTag', keepTag)
+
+
 
 // 设置主题
 let theme = ref(localStorage.getItem('theme') || 'dark')
@@ -218,7 +221,7 @@ const sendRequests = (startIndex = 9999) => {
     }, 100);
     inputText.value = "";
     adjustHeight();
-    if (removeTag.value) {
+    if (!keepTag.value) {
       inputTags.value = []
     }
 
@@ -253,7 +256,7 @@ const newPage = () => {
   });
   clearInterval(intervalId);
   QAcontext.value = ""
-  if (removeTag.value) {
+  if (!keepTag.value) {
     inputTags.value = []
   }
 }
@@ -352,7 +355,7 @@ const delPage = () => {
   }).catch(error => {
     console.error(error);
   });
-  if (removeTag.value) {
+  if (!keepTag.value) {
     inputTags.value = []
   }
 }
@@ -657,7 +660,7 @@ function onKeyDown(event) {
       }
     } else if (key === 'Escape') {
       cancel()
-    } else if (/^[a-zA-Z]$/.test(key)) { // 输入字母模式
+    } else if (/^[a-zA-Z0-9_-]$/.test(key)) { // 输入字母、数字、减号或下划线模式
       tagQuery += key;
       // 根据tagQuery的值，从tabListCache中筛选出符合条件的tag,查询方法是从开头匹配字符串
       tagList.value = tagListCache.filter(item => {
@@ -997,7 +1000,6 @@ function addCodeCopy() {
                 </div>
                 <pre class="preQ" :contenteditable="editable[index]"
                   :ref="el => preQRefs[`preQ-${index}`] = el">{{ round[0] }}</pre>
-
               </div>
             </div>
             <div>
@@ -1055,7 +1057,7 @@ function addCodeCopy() {
 
           <div class="toolbar-inner">
             <div style="width: 160px;" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
-              <el-tooltip content="新建对话" placement="top" :hide-after="hideAfter">
+              <el-tooltip content="新建对话 cmd/ctrl+t" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                     v-show="!streaming && connected" />

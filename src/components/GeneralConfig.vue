@@ -21,21 +21,22 @@
         <el-input-number v-model="maxContext" :step="step" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="保留编辑分支: ">
+    <el-form-item label="保留分支: ">
       <el-tooltip content="重新编辑输入内容并生成结果后，是否保留原有的对话内容分支" placement="top" :hide-after="hideAfter">
         <el-switch v-model="saveEdit" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="提交清除标签: ">
-      <el-tooltip content="每次提交输入后清除所有扩展标签" placement="top" :hide-after="hideAfter">
-        <el-switch v-model="removeTag" />
+    <el-form-item label="保留标签: ">
+      <el-tooltip content="每次提交输入后仍保留所有扩展标签" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="keepTag" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="自动执行代码: ">
-      <el-tooltip content="applescript/vbscript插件生成的代码是否自动执行" placement="top" :hide-after="hideAfter">
-        <el-switch v-model="autoExce" />
+    <el-form-item label="自动隐藏: ">
+      <el-tooltip content="不使用后1分钟自动隐藏窗口" placement="top" :hide-after="hideAfter">
+        <el-switch v-model="autoHide" />
       </el-tooltip>
     </el-form-item>
+
     <el-form-item label="主题: ">
       <el-radio-group v-model="themeValue">
           <el-radio-button label="dark" />
@@ -56,7 +57,7 @@
 <script setup>
 import { ref, onMounted, inject, watch} from 'vue'
 import axios from 'axios';
-import { remote } from "electron"
+import { remote,ipcRenderer } from "electron"
 import os from 'os';
 import path from 'path';
 
@@ -67,13 +68,20 @@ let maxContext = ref(2000)
 let saveEdit = ref(false)
 let hideAfter = ref(0)
 let step = ref(500)
+let autoHide = ref(false)
 
-let autoExce = ref(false)
+// 监测autoHide的值的变化，并发送给主进程
+autoHide.value = localStorage.getItem('autoHide') === "true"
+ipcRenderer.send('autoHide', autoHide.value)
+watch(autoHide, (newVal) => {
+  ipcRenderer.send('autoHide', newVal)
+  localStorage.setItem('autoHide', newVal)
+})
 
-const removeTag = inject('removeTag')
-const removeTagLocal = ref(removeTag.value)
-watch(removeTagLocal, (newVal) => {
-  removeTag.value = newVal
+const keepTag = inject('keepTag')
+const keepTagLocal = ref(keepTag.value)
+watch(keepTagLocal, (newVal) => {
+  keepTag.value = newVal
 })
 
 const theme = inject('theme')
@@ -108,8 +116,7 @@ const saveConfig = () => {
     console.error(error);
   });
   // UI配置值保存到localStorage中
-  localStorage.setItem('removeTag', removeTag.value)
-  localStorage.setItem('autoExce', autoExce.value)
+  localStorage.setItem('keepTag', keepTag.value)
 }
 
 
@@ -126,8 +133,11 @@ const openDir = () => {
 
 onMounted(() => {
   // 从localStorage中读取一些UI配置
-  removeTag.value = localStorage.getItem('removeTag') === "true" 
-  autoExce.value = localStorage.getItem('autoExce') === "true"
+  keepTag.value = localStorage.getItem('keepTag') === "true" 
+  // autoExce.value = localStorage.getItem('autoExce') === "true"
+  // 从localstorage中读取autoHide的值, 如果没有则设置为false
+  // autoHide = localStorage.getItem('autoHide') === "true" || false
+  
   // 从服务端读取一些配置
   loadConfig(); 
 })

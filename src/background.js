@@ -19,6 +19,8 @@ let isLock = false
 let isQuiting = false;
 let shiftMode = false;
 let braindoorProcess = null;
+let hideTimer
+let autoHide = false
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
@@ -55,11 +57,11 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     createProtocol('app')
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
-  }``
+  } ``
   shiftMode = false
 
   win.on('close', (event) => {
-    if (shiftMode){
+    if (shiftMode) {
       win = null;
       return
     }
@@ -74,7 +76,28 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       app.quit();
     }
   })
+
+  // 监听窗口失去焦点的事件
+  win.on('blur', () => {
+    // 启动计时器，在一段时间后隐藏窗口
+    // 从localStorage中获取autoHide的值，如果为true，才执行下面的自动隐藏逻辑
+    if (autoHide) {
+      hideTimer = setTimeout(() => {
+        win.hide()
+      }, 60000) // 60秒后隐藏窗口
+    }
+  }
+  )
+
+
+  win.on('focus', () => {
+    // 取消计时器
+    clearTimeout(hideTimer)
+  })
+
 }
+
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -142,19 +165,21 @@ app.on('ready', async () => {
   createWindow()
   tray = new Tray(path.join(__static, 'tray.png'))
   tray.on('click', () => {
-      win.show() // 显示窗口
-      win.focus() // 窗口获得焦点
+    win.show() // 显示窗口
+    win.focus() // 窗口获得焦点
   })
 
-  
+
 
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
-    { label: '退出', click: () => {
-      isQuiting = true;
-      app.quit();
-    }}
+    {
+      label: '退出', click: () => {
+        isQuiting = true;
+        app.quit();
+      }
+    }
   ])
   tray.setContextMenu(contextMenu)
 
@@ -163,7 +188,7 @@ app.on('ready', async () => {
     braindoorLogToRender();
   })
 
-  
+
 
   // 禁用缩放
   const defaultMenu = Menu.getApplicationMenu();
@@ -238,7 +263,7 @@ ipcMain.on('restart-braindoor', () => {
   }
   setTimeout(() => {
     startBraindoor();
-  } , 10000);
+  }, 10000);
 })
 
 
@@ -297,7 +322,7 @@ const braindoorLogToRender = () => {
 // 单例锁，开发时时候可以注释掉
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
-    app.quit();
+  app.quit();
 } else {
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     if (win) {
@@ -311,12 +336,19 @@ if (!gotTheLock) {
 
 
 ipcMain.handle('get-system-theme', (event) => {
-  const result =  nativeTheme.shouldUseDarkColors;
+  const result = nativeTheme.shouldUseDarkColors;
   if (result) {
     return 'dark';
   } else {
     return 'light';
   }
 })
+
+// 从渲染进程获取发送过来的autoHide的值，存储到autoHide中
+ipcMain.on('autoHide', (event, arg) => {
+  autoHide = arg;
+})
+
+
 
 app.setName('OpenCopilot')
