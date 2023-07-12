@@ -1,5 +1,5 @@
 'use strict'
-
+import fetch from 'node-fetch';
 import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 let path = require('path');
@@ -225,11 +225,10 @@ if (isDevelopment) {
 
 app.on('before-quit', () => {
   isQuiting = true;
-  // 在这里可以执行一些清理操作，如保存数据等
 })
 
 
-// lock
+// 无框模式切换
 ipcMain.on('render2main', (event, param1) => {
   if (param1 === 'reloadWindow') {
     if (!isLock) { //执行锁定
@@ -279,11 +278,40 @@ app.on('web-contents-created', (e, webContents) => {
   });
 });
 
+
+// 检查后台是否已经有可用的braindoor
+const contactBrainoor = async () => {
+  try {
+    const response = await fetch("http://127.0.0.1:7860/run/new_page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: []
+      })
+    });
+    //判断是否有正常的返回
+    if (response.status == 200) {
+      console.log('There are already available braindoor.');
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
+// 启动braindoor
 const startBraindoor = () => {
-  if (braindoorProcess) {
+
+  if (braindoorProcess || contactBrainoor()) {
     console.log('Braindoor is already running.');
     return;
   }
+  // 如果系统进程中有其他braindoor,也退出
+
+
   let resoursePath = path.join(__dirname, '..');
   let braindoorPath = null;
   let workPath = path.join(resoursePath, 'braindoor');
@@ -298,6 +326,10 @@ const startBraindoor = () => {
 };
 
 const braindoorLogToRender = () => {
+  if (!braindoorProcess) {
+    return;
+  }
+
   braindoorProcess.stdout.on('data', (data) => {
     console.log(`braindoor: ${data}`);
     win.webContents.send('message-from-main', `stdout: ${data}`);
