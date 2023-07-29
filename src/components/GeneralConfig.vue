@@ -5,9 +5,15 @@
         <el-input v-model="apikey" placeholder="输入OpenAI的API key" />
       </el-tooltip>
     </el-form-item>
-    <el-form-item label="Proxy: ">
-      <el-tooltip content="输入代理地址" placement="top" :hide-after="hideAfter">
-        <el-input v-model="proxy" placeholder="输入代理地址" />
+    <el-form-item label="正向代理: ">
+      <el-tooltip content="如果你是通过自己的VPN软件软件访问openai,在此输入代理地址" placement="top" :hide-after="hideAfter">
+        <el-input v-model="proxy" placeholder="输入正向代理地址" />
+      </el-tooltip>
+    </el-form-item>
+
+    <el-form-item label="反向代理: ">
+      <el-tooltip content="如果你是通过国内一些服务器提供的反向代理地址访问openai，在此输入地址" placement="top" :hide-after="hideAfter">
+        <el-input v-model="apiBase" placeholder="输入反向代理地址" />
       </el-tooltip>
     </el-form-item>
 
@@ -63,6 +69,7 @@ import path from 'path';
 
 let apikey = ref('')
 let proxy = ref('')
+let apiBase = ref('')
 let inputLimit = ref(2000)
 let maxContext = ref(2000)
 let saveEdit = ref(false)
@@ -103,6 +110,7 @@ const loadConfig = () => {
     inputLimit.value = response['data']['data'][6]
     maxContext.value = response['data']['data'][7]
     saveEdit.value = response['data']['data'][8]
+    apiBase.value = response['data']['data'][9]
   }).catch(error => {
     console.error(`load config 失败： ${error.message}`);
   });
@@ -110,7 +118,7 @@ const loadConfig = () => {
 
 const saveConfig = () => {
   axios.post('http://127.0.0.1:7860/run/save_config_from_brainshell', {
-    data: [apikey.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value]
+    data: [apikey.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value, apiBase.value]
   }).then(() => {
   }).catch(error => {
     console.error(error);
@@ -145,4 +153,3 @@ onMounted(() => {
 </script>
   
 <style></style>
-  

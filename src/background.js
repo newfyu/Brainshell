@@ -21,6 +21,7 @@ let shiftMode = false;
 let braindoorProcess = null;
 let hideTimer
 let autoHide = false
+let otherBraindoor = false
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
@@ -291,21 +292,27 @@ const contactBrainoor = async () => {
     });
     //判断是否有正常的返回
     if (response.status == 200) {
-      console.log('There are already available braindoor.');
-      return true;
+      console.log('There are already available braindoor on background.');
+      otherBraindoor = true;
     } else {
-      return false;
+      otherBraindoor = false;
     }
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    otherBraindoor = false;
   }
 }
 
 
 // 启动braindoor
-const startBraindoor = () => {
+const startBraindoor = async () => {
 
-  if (braindoorProcess || contactBrainoor()) {
+  await contactBrainoor();
+  if (otherBraindoor) {
+    return;
+  }
+
+  if (braindoorProcess) {
     console.log('Braindoor is already running.');
     return;
   }
