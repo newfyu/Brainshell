@@ -6,11 +6,12 @@
       <!-- <el-row justify="center"><el-text><h3>帮助文档</h3></el-text></el-row> -->
       <!-- <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row> -->
      
+      <el-row justify="center"><el-text><a href="https://gitee.com/vmn171/OpenCopilot"><h3>更多帮助</h3></a></el-text></el-row>
 
       <el-row justify="center"><el-text><h3>Github</h3></el-text></el-row>
-      <el-row justify="center"><el-text>OpenCopilot:&nbsp;<a href="https://github.com/newfyu/OpenCopilot">https://github.com/newfyu/OpenCopilot</a></el-text></el-row>
-      <el-row justify="center"><el-text>Braindoor:&nbsp;<a href="https://github.com/newfyu/Braindoor">https://github.com/newfyu/Braindoor</a></el-text></el-row>
-      <el-row justify="center"><el-text>Brainshell:&nbsp;<a href="https://github.com/newfyu/Brainshell">https://github.com/newfyu/Brainshell</a></el-text></el-row>
+      <el-row justify="center"><el-text>OpenCopilot:&nbsp;<a href="https://github.com/newfyu/OpenCopilot">github.com/newfyu/OpenCopilot</a></el-text></el-row>
+      <el-row justify="center"><el-text>Braindoor:&nbsp;<a href="https://github.com/newfyu/Braindoor">github.com/newfyu/Braindoor</a></el-text></el-row>
+      <el-row justify="center"><el-text>Brainshell:&nbsp;<a href="https://github.com/newfyu/Brainshell">github.com/newfyu/Brainshell</a></el-text></el-row>
 
       <el-row justify="center"><el-text><h3>反馈</h3></el-text></el-row>
       <el-row justify="center"><el-text>邮箱：lhan12345@hotmail.com</el-text></el-row>
