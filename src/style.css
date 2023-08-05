@@ -97,14 +97,14 @@ a{
     background-color: var(--el-bg-inputarea)
 }
 
-.inputAreaContainer:hover {
+/* .inputAreaContainer:hover {
     border: 1px solid var(--el-color-primary);
     border-radius: 10px;
-}
+} */
 
-.InputFocus {
+/* .InputFocus {
     border: 1px solid var(--el-color-primary);
-}
+} */
 
 .el-textarea__inner {
     box-shadow: unset;
@@ -268,7 +268,6 @@ ul {
 }
 
 
-
 .select-item {
     width: 100%;
     display: flex;
@@ -327,4 +326,7 @@ ul {
 }
 .code-copy-button:hover {
     filter: invert(0.5);
+}
+.code-copy-button:active {
+    filter: invert(0);
 }

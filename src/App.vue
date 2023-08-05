@@ -111,12 +111,14 @@ let cancelToken = null
 const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分颜色，不是实际意义
   base: 'warning',
   prompt: 'primary',
+  snippet: 'primary',
   engine: 'success',
   agent: 'danger',
   model: 'info',
 }
 let tagList = ref([])
 let tagListCache = []
+let snippetCache = []
 let caretPosition = { left: 0, top: 0 };
 let listRef = ref(null)
 let inputRef = ref(null)
@@ -237,7 +239,7 @@ const sendRequests = (startIndex = 9999) => {
 // 滚动到底部
 const scrollEnd = () => {
   setTimeout(() => {
-    scrollbarRef.value.setScrollTop(9999)
+    scrollbarRef.value.setScrollTop(999999)
   }, 50)
 }
 
@@ -427,6 +429,20 @@ const toolbarOnLeave = () => {
   isLoading.value = true
 }
 
+// 获取snippet的请求
+function getSnippets() {
+  ipcRenderer.send('request-snippets');
+  return new Promise((resolve, reject) => {
+    ipcRenderer.once('reply-snippets', (event, response) => {
+      if (response.status === 'success') {
+        resolve(response.data);
+      } else if (response.status === 'error') {
+        reject(new Error(response.message));
+      }
+    });
+  });
+}
+
 // 启动后尝试与braindoor进行连接
 const contactBrainoor = () => {
   axios.post('http://127.0.0.1:7860/run/new_page', {
@@ -437,6 +453,7 @@ const contactBrainoor = () => {
     // tagList.value = arr.map(([name, type]) => ({ name, type }));
     connected.value = true;
 
+
     tagList.value = [...tagList.value, ...arr.map(([name, type]) => ({ name, type }))];
 
     tagList.value = tagList.value.map(item => {
@@ -444,13 +461,24 @@ const contactBrainoor = () => {
         ...item, color: tagColor[item.type], abbr: textAbbr(item.name) + item.type
       }
     })
-    tagListCache = tagList.value.slice();
+
+    // 获取snippet
+    getSnippets().then(snippets => {
+      tagList.value = [...tagList.value, ...snippets.map(({ name }) => ({
+        name,
+        type: 'snippet',
+        color: tagColor['snippet'],
+        abbr: textAbbr(name) + 'snippet'
+      }))];
+      tagListCache = tagList.value.slice(); 
+      snippetCache = snippets.slice();
+    }).catch(error => {
+      console.error(error);
+      tagListCache = tagList.value.slice(); 
+    });
 
     if (!isLock) {
-
       QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`shift-enter`  \n- 智能标签：`/`  \n- 新建对话：`cmd/ctrl + t`  \n- 查询历史：`cmd/ctrl + f`  \n- <rearslot><br>&nbsp;首次使用需要设置OpenAI的Key&nbsp;<a href="#" onClick="testFn()">点此设置</a><br>&nbsp;更多<a href="https://gitee.com/vmn171/OpenCopilot">帮助</a></rearslot>']];
-
-
       md2html();
       // clearInterval(retryId);
 
@@ -543,10 +571,27 @@ function tag2str(question) {
 }
 
 
-// 选择etag列表中的条目
+// 选择etag列表中的条目 TODO
 function selectItem(item) {
   const textarea = inputRef.value.textarea
   const position = inputRef.value.textarea.selectionEnd
+
+  // 如果是snippet，直接插入item的name到textarea中，而不是插入到inputTags中
+  if (item.type === 'snippet') {
+    const text = textarea.value;
+    const queryLength = tagQuery.length + 1;
+    // 从snippetCache中找到对应的snippet,取出content的内容，存储到一个content变量中
+    const content = snippetCache.find(snippet => snippet.name === item.name).content
+
+    textarea.value = text.substring(0, position - queryLength) + content + text.substring(position);
+    inputText.value = textarea.value;
+    textarea.selectionStart = position - queryLength + content.length;
+    textarea.selectionEnd = position - queryLength + content.length;
+    tagQuery = "";
+    adjustHeight();
+    return;
+  }
+
   // 如果inputTags.value中已经存在相同的条目，则不push进去
   const hasSameItem = inputTags.value.some(tag => {
     return tag.name === item.name && tag.type === item.type

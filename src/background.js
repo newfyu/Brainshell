@@ -2,7 +2,8 @@
 import fetch from 'node-fetch';
 import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
-let path = require('path');
+import fs from 'fs';
+import path from 'path';
 const { spawn } = require('child_process');
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
@@ -388,6 +389,25 @@ ipcMain.on('autoHide', (event, arg) => {
   autoHide = arg;
 })
 
+
+
+// 从渲染进程接受一个消息，从'用户文件夹/braindoor/prompts'中读取所有的txt文件，存储到一个snippets数组中，包括文件名和文件内容
+// 然后把snippet返回渲染进程
+ipcMain.on('request-snippets', (event, arg) => {
+  const folderPath = path.join(app.getPath('home'), 'braindoor', 'prompts');
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      event.reply('reply-snippets', { status: 'error', message: err.message });
+    } else {
+      const snippets = files.filter(file => file.endsWith('.txt')).map(file => {
+        const content = fs.readFileSync(path.join(folderPath, file), 'utf-8');
+        const name = file.replace('.txt', '');
+        return { name: name, content: content };
+      });
+      event.reply('reply-snippets', { status: 'success', data: snippets });
+    }
+  });
+});
 
 
 app.setName('OpenCopilot')
