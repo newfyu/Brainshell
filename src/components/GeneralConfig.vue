@@ -52,7 +52,7 @@
     </el-form-item>
     <el-form-item>
       <el-button @click="openLogFile">日志</el-button>
-      <el-button @click="openDir">插件目录</el-button>
+      <el-button @click="openDir">配置目录</el-button>
     </el-form-item>
     <el-form-item>
     <el-button type="primary" @click="onSubmit">保存</el-button>
