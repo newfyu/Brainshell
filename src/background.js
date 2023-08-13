@@ -210,12 +210,12 @@ app.on('ready', async () => {
 
   // 注册剪贴板监控的全局快捷键
   const isRegistered = globalShortcut.register(isMac ? 'Command+`' : 'Ctrl+`', () => {
-
     let cmd = ""
     if (isMac) {
       const scptPath = path.join(__static, 'copyCmd.scpt');
       cmd = `osascript ${scptPath}`;
     } else {
+      win.hide();
       const scptPath = path.join(__static, 'copyCmd.vbs');
       cmd = `cscript ${scptPath}`;
     }
@@ -228,9 +228,9 @@ app.on('ready', async () => {
     setTimeout(() => {
       const text = clipboard.readText();
       win.webContents.send('clipboard-data', text);
-      win.show();
-      win.focus();
     }, 100);
+    win.show();
+    win.focus();
   });
 
 if (!isRegistered) {
