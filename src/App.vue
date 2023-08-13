@@ -930,7 +930,7 @@ onMounted(async () => {
   clearTimeout(transparentTimeout);
 
   newPage();
-  inputText.value = text + '\n';
+  inputText.value = text + '\n\n';
   // 把app置于前台并激活
   setTimeout(() => {
     inputRef.value.focus();

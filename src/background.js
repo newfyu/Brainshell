@@ -24,7 +24,7 @@ let isQuiting = false;
 let shiftMode = false;
 let braindoorProcess = null;
 let hideTimer
-let autoHide = false
+let autoHide = true
 let otherBraindoor = false
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
