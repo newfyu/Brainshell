@@ -8,6 +8,8 @@ module.exports = {
       nodeIntegration: true,
       externals: ['electron-store'],
       builderOptions: {
+        "asar": false,
+        "appId": "com.brainshell.app",
         "win": {
           "icon": "public/icon256.png",
           extraResources: [

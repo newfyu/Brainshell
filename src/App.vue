@@ -918,6 +918,24 @@ onMounted(async () => {
   }, 50)
   getState();
 
+  // 在这里你可以处理从主进程接收到的剪贴板内容
+  ipcRenderer.on('clipboard-data', (event, text) => {
+  console.log(text);
+  // 如果app目前是隐藏状态，显示app
+  if (remote.getCurrentWindow().isVisible() === false) {
+    remote.getCurrentWindow().show();
+  }
+  const inputArea = document.querySelector('#inputArea');
+  inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';
+  clearTimeout(transparentTimeout);
+
+  newPage();
+  inputText.value = text + '\n';
+  // 把app置于前台并激活
+  setTimeout(() => {
+    inputRef.value.focus();
+  }, 50);
+});
 })
 
 

@@ -1,10 +1,11 @@
 'use strict'
 import fetch from 'node-fetch';
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
-const { spawn } = require('child_process');
+
+const { spawn,execSync } = require('child_process');
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -13,6 +14,8 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
 ])
+
+const isMac = process.platform === 'darwin';
 
 let win = null
 let tray = null
@@ -163,6 +166,7 @@ app.on('ready', async () => {
   // if (process.env.NODE_ENV === 'development') {
   //   devtools.connect(/* host, port */)
   // }
+
   startBraindoor()
   createWindow()
   tray = new Tray(path.join(__static, 'tray.png'))
@@ -170,9 +174,7 @@ app.on('ready', async () => {
     win.show() // 显示窗口
     win.focus() // 窗口获得焦点
   })
-
-
-
+  
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
@@ -190,8 +192,6 @@ app.on('ready', async () => {
     braindoorLogToRender();
   })
 
-
-
   // 禁用缩放
   const defaultMenu = Menu.getApplicationMenu();
   if (defaultMenu) {
@@ -208,6 +208,32 @@ app.on('ready', async () => {
     }
   }
 
+  // 注册剪贴板监控的全局快捷键
+  const isRegistered = globalShortcut.register(isMac ? 'Command+l' : 'Ctrl+l', () => {
+    const scptPath = path.join(__static, 'copyCmd.scpt');
+    if (isMac) {
+      try {
+        execSync(`osascript ${scptPath}`);
+       
+      } catch (error) {
+        console.error(`exec error: ${error}`);
+        return;
+      }
+      setTimeout(() => {
+        const text = clipboard.readText();
+        win.webContents.send('clipboard-data', text);
+        win.show();
+        win.focus();
+      }, 100);
+     
+    }
+
+  });
+
+if (!isRegistered) {
+    console.log('全局快捷键注册失败');
+}
+  
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -228,6 +254,11 @@ if (isDevelopment) {
 app.on('before-quit', () => {
   isQuiting = true;
 })
+
+app.on('will-quit', () => {
+  // 注销所有快捷键
+  globalShortcut.unregisterAll();
+});
 
 
 // 无框模式切换
@@ -408,6 +439,10 @@ ipcMain.on('request-snippets', (event, arg) => {
     }
   });
 });
+
+
+
+
 
 
 app.setName('OpenCopilot')
