@@ -209,25 +209,28 @@ app.on('ready', async () => {
   }
 
   // 注册剪贴板监控的全局快捷键
-  const isRegistered = globalShortcut.register(isMac ? 'Command+l' : 'Ctrl+l', () => {
-    const scptPath = path.join(__static, 'copyCmd.scpt');
-    if (isMac) {
-      try {
-        execSync(`osascript ${scptPath}`);
-       
-      } catch (error) {
-        console.error(`exec error: ${error}`);
-        return;
-      }
-      setTimeout(() => {
-        const text = clipboard.readText();
-        win.webContents.send('clipboard-data', text);
-        win.show();
-        win.focus();
-      }, 100);
-     
-    }
+  const isRegistered = globalShortcut.register(isMac ? 'Command+`' : 'Ctrl+`', () => {
 
+    let cmd = ""
+    if (isMac) {
+      const scptPath = path.join(__static, 'copyCmd.scpt');
+      cmd = `osascript ${scptPath}`;
+    } else {
+      const scptPath = path.join(__static, 'copyCmd.vbs');
+      cmd = `cscript ${scptPath}`;
+    }
+    try {
+      execSync(cmd);
+    } catch (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    setTimeout(() => {
+      const text = clipboard.readText();
+      win.webContents.send('clipboard-data', text);
+      win.show();
+      win.focus();
+    }, 100);
   });
 
 if (!isRegistered) {
