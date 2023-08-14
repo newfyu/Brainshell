@@ -26,6 +26,7 @@ let braindoorProcess = null;
 let hideTimer
 let autoHide = true
 let otherBraindoor = false
+let clipboardSave = null
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
@@ -166,7 +167,7 @@ app.on('ready', async () => {
   // if (process.env.NODE_ENV === 'development') {
   //   devtools.connect(/* host, port */)
   // }
-
+  clipboardSave = clipboard.readText();
   startBraindoor()
   createWindow()
   tray = new Tray(path.join(__static, 'tray.png'))
@@ -208,7 +209,7 @@ app.on('ready', async () => {
     }
   }
 
-  // 注册剪贴板监控的全局快捷键
+  // 全局Ask功能，注册剪贴板监控的全局快捷键
   const isRegistered = globalShortcut.register(isMac ? 'Command+`' : 'Ctrl+`', () => {
     let cmd = ""
     if (isMac) {
@@ -226,9 +227,19 @@ app.on('ready', async () => {
       return;
     }
     setTimeout(() => {
-      const text = clipboard.readText();
-      win.webContents.send('clipboard-data', text);
-    }, 100);
+      let text = clipboard.readText();
+      // 判断当前的时间戳和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
+      if (text == clipboardSave) {
+        setTimeout(() => {
+          text = clipboard.readText();
+          win.webContents.send('clipboard-data', text);
+          clipboardSave = text;
+        },500);
+      } else {
+        win.webContents.send('clipboard-data', text);
+        clipboardSave = text;
+      }
+    }, 150);
     win.show();
     win.focus();
   });
@@ -352,8 +363,6 @@ const startBraindoor = async () => {
     return;
   }
   // 如果系统进程中有其他braindoor,也退出
-
-
   let resoursePath = path.join(__dirname, '..');
   let braindoorPath = null;
   let workPath = path.join(resoursePath, 'braindoor');
