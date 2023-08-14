@@ -470,11 +470,11 @@ const contactBrainoor = () => {
         color: tagColor['snippet'],
         abbr: textAbbr(name) + 'snippet'
       }))];
-      tagListCache = tagList.value.slice(); 
+      tagListCache = tagList.value.slice();
       snippetCache = snippets.slice();
     }).catch(error => {
       console.error(error);
-      tagListCache = tagList.value.slice(); 
+      tagListCache = tagList.value.slice();
     });
 
     if (!isLock) {
@@ -839,6 +839,12 @@ function addEventListeners() {
     setState();
   }))
 
+  win.on('show', () => {
+    const inputArea = document.querySelector('#inputArea');
+    inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';
+    clearTimeout(transparentTimeout);
+  })
+
   // 注册拖拽文件上传的处理  
   const inputArea = document.querySelector('#inputArea');
   inputArea.addEventListener('dragover', (event) => {
@@ -920,11 +926,11 @@ onMounted(async () => {
 
   // 在这里你可以处理从主进程接收到的剪贴板内容
   ipcRenderer.on('clipboard-data', (event, text) => {
-  // 如果app目前是隐藏状态，显示app
-  if (remote.getCurrentWindow().isVisible() === false) {
-    remote.getCurrentWindow().show();
-  }
-  const inputArea = document.querySelector('#inputArea');
+    // 如果app目前是隐藏状态，显示app
+    if (remote.getCurrentWindow().isVisible() === false) {
+      remote.getCurrentWindow().show();
+    }
+    const inputArea = document.querySelector('#inputArea');
     inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';
     clearTimeout(transparentTimeout);
 
@@ -937,7 +943,14 @@ onMounted(async () => {
       inputRef.value.textarea.scrollTop = inputRef.value.textarea.scrollHeight;
     });
   });
-  })
+
+  //从localstorage中读取askHotkey的值，如果有，发送到主进程
+  const askHotkey = localStorage.getItem('askHotkey');
+  if (askHotkey) {
+    ipcRenderer.send('setAskHotkey', askHotkey);
+  }
+
+})
 
 
 onUnmounted(() => {

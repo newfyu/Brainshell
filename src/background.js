@@ -1,11 +1,12 @@
 'use strict'
 import fetch from 'node-fetch';
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
 
-const { spawn,execSync } = require('child_process');
+
+const { spawn, execSync } = require('child_process');
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -16,6 +17,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const isMac = process.platform === 'darwin';
+const defaultAskHotkey = isMac ? 'Option+K' : 'Alt+K';
 
 let win = null
 let tray = null
@@ -156,26 +158,22 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  // if (isDevelopment && !process.env.IS_TEST) {
-  //   // Install Vue Devtools
-  //   try {
-  //     await installExtension(VUEJS3_DEVTOOLS)
-  //   } catch (e) {
-  //     console.error('Vue Devtools failed to install:', e.toString())
-  //   }
-  // }
-  // if (process.env.NODE_ENV === 'development') {
-  //   devtools.connect(/* host, port */)
-  // }
   clipboardSave = clipboard.readText();
   startBraindoor()
   createWindow()
+
+
+  // 设置托盘
   tray = new Tray(path.join(__static, 'tray.png'))
   tray.on('click', () => {
-    win.show() // 显示窗口
-    win.focus() // 窗口获得焦点
+    if (!win.isVisible()) {
+      win.show() // 显示窗口
+    }
+    setTimeout(() => {
+      win.focus()
+    }, 200)
   })
-  
+
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
@@ -210,7 +208,14 @@ app.on('ready', async () => {
   }
 
   // 全局Ask功能，注册剪贴板监控的全局快捷键
-  const isRegistered = globalShortcut.register(isMac ? 'Command+`' : 'Ctrl+`', () => {
+  updateAskHotkey(defaultAskHotkey);
+})
+
+
+// 设置全局快捷键的函数，传入快捷键参数，先注销快捷键，再注册快捷键
+function updateAskHotkey(key) {
+  globalShortcut.unregisterAll();
+  const isRegistered = globalShortcut.register(key, () => {
     let cmd = ""
     if (isMac) {
       const scptPath = path.join(__static, 'copyCmd.scpt');
@@ -228,27 +233,25 @@ app.on('ready', async () => {
     }
     setTimeout(() => {
       let text = clipboard.readText();
-      // 判断当前的时间戳和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
+      // 判断当前的data和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
       if (text == clipboardSave) {
         setTimeout(() => {
           text = clipboard.readText();
           win.webContents.send('clipboard-data', text);
           clipboardSave = text;
-        },500);
+        }, 500);
       } else {
         win.webContents.send('clipboard-data', text);
         clipboardSave = text;
       }
-    }, 150);
+    }, 200);
     win.show();
     win.focus();
   });
-
-if (!isRegistered) {
+  if (!isRegistered) {
     console.log('全局快捷键注册失败');
+  }
 }
-  
-})
 
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
@@ -264,6 +267,8 @@ if (isDevelopment) {
     })
   }
 }
+
+
 
 app.on('before-quit', () => {
   isQuiting = true;
@@ -452,8 +457,19 @@ ipcMain.on('request-snippets', (event, arg) => {
   });
 });
 
-
-
+//接受来自渲染进程的setAskHotkey消息，然后重新设置askHotkey
+ipcMain.on('setAskHotkey', (event, arg) => {
+  try {
+    updateAskHotkey(arg);
+  } catch (error) {
+    dialog.showMessageBox({
+      type: 'error',
+      title: '设置快捷键错误',
+      message: '有特殊符号不支持设置快捷键'
+    });
+    updateAskHotkey(defaultAskHotkey);
+  }
+})
 
 
 

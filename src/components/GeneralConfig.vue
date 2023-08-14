@@ -27,6 +27,12 @@
         <el-input-number v-model="maxContext" :step="step" />
       </el-tooltip>
     </el-form-item>
+    <el-form-item>
+    <el-button type="primary" @click="onSubmit">保存</el-button>
+    </el-form-item>
+
+    <el-divider />
+
     <el-form-item label="保留分支: ">
       <el-tooltip content="重新编辑输入内容并生成结果后，是否保留原有的对话内容分支" placement="top" :hide-after="hideAfter">
         <el-switch v-model="saveEdit" />
@@ -43,6 +49,29 @@
       </el-tooltip>
     </el-form-item>
 
+
+    <el-divider />
+    
+    <el-form-item label="全局Ask热键: ">
+      <el-checkbox-group v-model="askHotkeyModifyKey">
+        <el-checkbox label="Cmd" />
+        <el-checkbox label="Control" />
+        <el-checkbox label="Option" />
+        <el-checkbox label="Shift"/>
+      </el-checkbox-group>
+      <el-tooltip content="设置全局Ask的快捷键，这是系统级的全局快捷键，注意不要和系统中已有的快捷键冲突" placement="top" :hide-after="hideAfter">
+        <el-input v-model="askHotKeyMainKey" @click="recordAskHotkey" maxlength="1">
+        </el-input>
+      </el-tooltip>
+        
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="setAskHotkey">设置</el-button>
+        <el-button @click="restorDefaultHotkey">恢复默认</el-button>
+      </el-form-item>
+
+    <el-divider />
+    
     <el-form-item label="主题: ">
       <el-radio-group v-model="themeValue">
           <el-radio-button label="dark" />
@@ -54,9 +83,7 @@
       <el-button @click="openLogFile">日志</el-button>
       <el-button @click="openDir">配置目录</el-button>
     </el-form-item>
-    <el-form-item>
-    <el-button type="primary" @click="onSubmit">保存</el-button>
-    </el-form-item>
+
   </el-form>
 </template>
   
@@ -66,6 +93,7 @@ import axios from 'axios';
 import { remote,ipcRenderer } from "electron"
 import os from 'os';
 import path from 'path';
+import { ElMessage } from 'element-plus'
 
 let apikey = ref('')
 let proxy = ref('')
@@ -76,6 +104,13 @@ let saveEdit = ref(false)
 let hideAfter = ref(0)
 let step = ref(500)
 let autoHide = ref(false)
+const askHotKeyMainKey = ref('')
+const askHotkeyModifyKey = ref(['']);
+const askHotKey = ref('')
+
+
+const isMac = window.navigator.userAgent.includes('Mac');
+const defaultAskHotkey = isMac ? 'Option+K' : 'Alt+K';
 
 // 监测autoHide的值的变化，并发送给主进程
 autoHide.value = localStorage.getItem('autoHide') === "true"
@@ -127,8 +162,6 @@ const saveConfig = () => {
   localStorage.setItem('keepTag', keepTag.value)
 }
 
-
-
 const openLogFile = () => {
   const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');
   remote.shell.openPath(logFilePath);
@@ -139,15 +172,43 @@ const openDir = () => {
   remote.shell.openPath(dirPath);
 }
 
+function setAskHotkey() {
+
+  // 首先判断askHotKeyMainKey和askHotKeyModifyKey是否为空
+  if (askHotKeyMainKey.value === '' || askHotkeyModifyKey.value.length === 0) {
+    ElMessage.error('修饰键和主键不能为空')
+    return;
+  }
+
+  // 把askHotKeyMainKey和askHotkeyModifyKey拼接成字符串，存储到askHotKey中
+  askHotkeyModifyKey.value = askHotkeyModifyKey.value.filter(value => value && value.trim());
+  askHotKey.value = askHotkeyModifyKey.value.join('+') + '+' + askHotKeyMainKey.value;
+  ipcRenderer.send('setAskHotkey', askHotKey.value);
+  localStorage.setItem('askHotkey', askHotKey.value);
+  ElMessage.success(`Ask快捷键设置成功：${askHotKey.value}`)
+}
+
+// 恢复默认的快捷键
+function restorDefaultHotkey() {
+  askHotKey.value = defaultAskHotkey;
+  localStorage.setItem('askHotkey', askHotKey.value);
+}
+
+
+function loadHotkeyFromLocalStorage() {
+  const hotkey = localStorage.getItem('askHotkey');
+  if (hotkey) {
+    askHotKey.value = hotkey;
+  } else {
+    askHotKey.value = defaultAskHotkey;
+  }
+}
+
 onMounted(() => {
-  // 从localStorage中读取一些UI配置
   keepTag.value = localStorage.getItem('keepTag') === "true" 
-  // autoExce.value = localStorage.getItem('autoExce') === "true"
-  // 从localstorage中读取autoHide的值, 如果没有则设置为false
-  // autoHide = localStorage.getItem('autoHide') === "true" || false
-  
   // 从服务端读取一些配置
   loadConfig(); 
+  loadHotkeyFromLocalStorage();
 })
 
 </script>
