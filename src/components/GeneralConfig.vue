@@ -53,14 +53,8 @@
     <el-divider />
     
     <el-form-item label="全局Ask热键: ">
-      <el-checkbox-group v-model="askHotkeyModifyKey">
-        <el-checkbox label="Cmd" />
-        <el-checkbox label="Control" />
-        <el-checkbox label="Option" />
-        <el-checkbox label="Shift"/>
-      </el-checkbox-group>
-      <el-tooltip content="设置全局Ask的快捷键，这是系统级的全局快捷键，注意不要和系统中已有的快捷键冲突" placement="top" :hide-after="hideAfter">
-        <el-input v-model="askHotKeyMainKey" @click="recordAskHotkey" maxlength="1">
+      <el-tooltip content="设置全局Ask的快捷键，注意这是系统级的全局快捷键，可能和系统中已有快捷键发送冲突！" placement="top" :hide-after="hideAfter">
+        <el-input v-model="askHotKey" @keydown.prevent="recordAskHotkey">
         </el-input>
       </el-tooltip>
         
@@ -104,10 +98,7 @@ let saveEdit = ref(false)
 let hideAfter = ref(0)
 let step = ref(500)
 let autoHide = ref(false)
-const askHotKeyMainKey = ref('')
-const askHotkeyModifyKey = ref(['']);
-const askHotKey = ref('')
-
+const askHotKey = ref('');
 
 const isMac = window.navigator.userAgent.includes('Mac');
 const defaultAskHotkey = isMac ? 'Option+K' : 'Alt+K';
@@ -172,20 +163,70 @@ const openDir = () => {
   remote.shell.openPath(dirPath);
 }
 
-function setAskHotkey() {
+function simplifyCode(code) {
+  const SPECIAL_KEYS_MAP = {
+    'Backquote': '`',  // 对于 ` 和 ~
+    'BracketLeft': '[',  // 对于 [ 和 {
+    'BracketRight': ']',  // 对于 ] 和 }
+    'Backslash': '\\',  // 对于 \ 和 |
+    'Semicolon': ';',  // 对于 ; 和 :
+    'Quote': '\'',  // 对于 ' 和 "
+    'Comma': ',',  // 对于 , 和 <
+    'Period': '.',  // 对于 . 和 >
+    'Slash': '/',  // 对于 / 和 ?
+    'Minus': '-',  // 对于 - 和 _
+    'Equal': '=',  // 对于 = 和 +
+    'IntlBackslash': '<', // 对于标准ISO键盘上的区域性特定的键，如英国键盘上的 \ 和 |
+};
+  
+  if (code.startsWith('Key')) {
+    return code.replace('Key', '');
+  }
+  if (code.startsWith('Digit')) {
+    return code.replace('Digit', '');
+  }
+  if (SPECIAL_KEYS_MAP[code]) {
+    return SPECIAL_KEYS_MAP[code];
+  }
 
-  // 首先判断askHotKeyMainKey和askHotKeyModifyKey是否为空
-  if (askHotKeyMainKey.value === '' || askHotkeyModifyKey.value.length === 0) {
-    ElMessage.error('修饰键和主键不能为空')
+  return ''; // 对于其他按键，返回X
+
+}
+
+// 记录全局Ask快捷键
+function recordAskHotkey(event) {
+  event.preventDefault();
+  let keys = [];
+
+  // 如果是Del或Backspace键，重置到默认值
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    askHotKey.value = defaultAskHotkey;
+    return;
+  }
+  // 检查各种修饰键
+  if (event.ctrlKey) keys.push(isMac ? 'Control' : 'Ctrl');
+  if (event.shiftKey) keys.push('Shift');
+  if (event.altKey) keys.push(isMac ? 'Option' : 'Alt');
+  if (event.metaKey) keys.push(isMac ? 'Cmd' : 'Win'); 
+
+  const capturedKey = simplifyCode(event.code);
+  if (capturedKey) {
+    keys.push(capturedKey);
+  }
+
+  askHotKey.value = keys.join('+');
+}
+
+function setAskHotkey() {
+  //判断askHotKey不为空，且有修饰键。如果没有修饰键，恢复为从localStorage中读取的值
+  if (askHotKey.value === '' || askHotKey.value.split('+').length === 1) {
+    askHotKey.value = localStorage.getItem('askHotkey');
+    ElMessage.error('快捷键有冲突，请重新设置');
     return;
   }
 
-  // 把askHotKeyMainKey和askHotkeyModifyKey拼接成字符串，存储到askHotKey中
-  askHotkeyModifyKey.value = askHotkeyModifyKey.value.filter(value => value && value.trim());
-  askHotKey.value = askHotkeyModifyKey.value.join('+') + '+' + askHotKeyMainKey.value;
   ipcRenderer.send('setAskHotkey', askHotKey.value);
   localStorage.setItem('askHotkey', askHotKey.value);
-  ElMessage.success(`Ask快捷键设置成功：${askHotKey.value}`)
 }
 
 // 恢复默认的快捷键
