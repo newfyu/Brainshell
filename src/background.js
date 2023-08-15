@@ -100,6 +100,11 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   }
   )
 
+  win.on('show', () => {
+    setTimeout(() => {
+      win.focus();
+    }, 200);
+  });
 
   win.on('focus', () => {
     // 取消计时器
@@ -183,9 +188,15 @@ app.on('ready', async () => {
     }
   }
 
-  // 全局Ask功能，注册剪贴板监控的全局快捷键
+  // 全局Ask
   updateAskHotkey(defaultAskHotkey);
 })
+
+function wait(ms) {
+  const endTime = Date.now() + ms;
+  while (Date.now() < endTime) {
+  }
+}
 
 
 // 设置全局快捷键的函数，传入快捷键参数，先注销快捷键，再注册快捷键
@@ -204,21 +215,11 @@ function updateAskHotkey(key) {
     execSync(cmd);
 
     let text = clipboard.readText();
-    // 判断当前的data和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
-
-    text = clipboard.readText();
     win.webContents.send('clipboard-data', text);
     clipboardSave = text;
-    setTimeout(() => {
-      win.show();
-      win.focus();
-    }, 200);
-
-
+    // win.focus();
+    win.show();
   });
-  if (!isRegistered) {
-    console.log('全局快捷键注册失败');
-  }
 }
 
 // Exit cleanly on request from parent process in development mode.
