@@ -155,6 +155,11 @@ app.on('ready', async () => {
     }, 200)
   })
 
+  // 捕获异常
+  app.on('uncaughtException', (error) => {
+    console.error('Caught unhandled exception:', error);
+  });
+
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
@@ -264,15 +269,15 @@ ipcMain.on('render2main', (event, param1) => {
         win.show()
       })
     } else {
-        const bounds = win.getBounds();
-        shiftMode = true
-        win.close()
-        createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
-        isLock = false
-        win.setResizable(true)
-        win.once('ready-to-show', () => {
-          win.show()
-        })
+      const bounds = win.getBounds();
+      shiftMode = true
+      win.close()
+      createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
+      isLock = false
+      win.setResizable(true)
+      win.once('ready-to-show', () => {
+        win.show()
+      })
     }
   }
 })
