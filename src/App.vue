@@ -2,7 +2,8 @@
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
 import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
-import { ipcRenderer, remote, clipboard } from "electron"
+import { ipcRenderer, clipboard } from "electron"
+const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/monokai-sublime.css';
@@ -15,6 +16,7 @@ import UpdateBase from './components/UpdateBase.vue';
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import markdownItCopy from 'markdown-it-code-copy';
 import MarkdownItTaskLists from 'markdown-it-task-lists';
+
 
 const md = Markdown({
   highlight: (str, lang) => {
@@ -67,7 +69,7 @@ let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
 const drawer = ref(false)
 const activeName = ref('normal')
 const hideAfter = ref(0)
-let currentWindow = remote.getCurrentWindow(); // 当前窗口
+let currentWindow = getCurrentWindow();
 let isLock = !currentWindow.isResizable() // 是否锁定窗口
 let winOffset = 0 // 窗口偏移量，用于微调一些组件的位置
 let isMac = process.platform === 'darwin' ? true : false // 判断当前的操作系统，如果是windows则设置为false，否则设置为true
@@ -820,7 +822,7 @@ const getSystemTheme = async () => {
 
 // 页面加载时的各种初始化
 function addEventListeners() {
-  let win = remote.getCurrentWindow();
+  let win = getCurrentWindow();
   window.addEventListener('mousemove', (event) => {
     let flag = event.target.classList.contains('permeable');
     if (flag && isLock) {
@@ -870,7 +872,7 @@ function addEventListeners() {
 }
 
 function removeEventListeners() {
-  let win = remote.getCurrentWindow();
+  let win = getCurrentWindow();
   window.removeEventListener('mousemove', () => {
     let flag = event.target.classList.contains('permeable');
     if (flag && isLock) {
@@ -927,8 +929,8 @@ onMounted(async () => {
   // 在这里你可以处理从主进程接收到的剪贴板内容
   ipcRenderer.on('clipboard-data', (event, text) => {
     // 如果app目前是隐藏状态，显示app
-    if (remote.getCurrentWindow().isVisible() === false) {
-      remote.getCurrentWindow().show();
+    if (getCurrentWindow().isVisible() === false) {
+      getCurrentWindow().show();
     }
     const inputArea = document.querySelector('#inputArea');
     inputArea.style.backgroundColor = 'var(--el-bg-inputarea)';

@@ -1,6 +1,7 @@
 'use strict'
 import fetch from 'node-fetch';
 import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog } from 'electron'
+require('@electron/remote/main').initialize()
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
@@ -40,6 +41,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     transparent: transparent,
     hasShadow: shadow,
     alwaysOnTop: top,
+    resizable: true,
     show: false,
     skipTaskbar: true,
     minWidth: 400,
@@ -54,9 +56,10 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       enableRemoteModule: true,
       webSecurity: false,
-      zoomFactor: 1.0
+      zoomFactor: 1
     }
   })
+  require('@electron/remote/main').enable(win.webContents);
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
@@ -103,42 +106,14 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     clearTimeout(hideTimer)
   })
 
+  require('@electron/remote/main').enable(win.webContents);
 }
 
 
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  // 弹出提示框
-  // const options = {
-  //   type: 'question',
-  //   buttons: ['确认', '取消'],
-  //   defaultId: 0,
-  //   title: '确认退出',
-  //   message: '确定要关闭程序吗？',
-  //   // icon: 'assets/icon.png'
-  // }
 
-  // dialog.showMessageBox(win, options).then((result) => {
-  //   if (result.response === 0) {
-  //     // 如果点击了确认按钮，则关闭窗口
-  //     app.quit()
-  //   }
-  // })
-
-  // app.quit()
-  // setTimeout(() => {
-  //   if (BrowserWindow.getAllWindows().length === 0) {
-  //     app.quit();
-  //   }
-  // }, 5000); // 等待5秒钟
-
-
-  // if (process.platform !== 'darwin') {
-  //   app.quit()
-  // }
 })
 
 
@@ -158,10 +133,11 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+
   clipboardSave = clipboard.readText();
   startBraindoor()
   createWindow()
-
+  require('@electron/remote/main').enable(win.webContents);
 
   // 设置托盘
   tray = new Tray(path.join(__static, 'tray.png'))
@@ -225,7 +201,12 @@ function updateAskHotkey(key) {
       cmd = `cscript ${scptPath}`;
     }
     try {
-      execSync(cmd);
+      if (isMac) {
+        execSync(cmd);
+      } else {
+        execSync('powershell -Command "& {[System.Windows.Forms.SendKeys]::SendWait(\'^c\')}"');
+      }
+      
     } catch (error) {
       console.error(`exec error: ${error}`);
       return;
@@ -290,15 +271,15 @@ ipcMain.on('render2main', (event, param1) => {
         win.show()
       })
     } else {
-      const bounds = win.getBounds();
-      shiftMode = true
-      win.close()
-      createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
-      isLock = false
-      win.setResizable(true)
-      win.once('ready-to-show', () => {
-        win.show()
-      })
+        const bounds = win.getBounds();
+        shiftMode = true
+        win.close()
+        createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
+        isLock = false
+        win.setResizable(true)
+        win.once('ready-to-show', () => {
+          win.show()
+        })
     }
   }
 })
@@ -466,7 +447,6 @@ ipcMain.on('setAskHotkey', (event, arg) => {
     updateAskHotkey(defaultAskHotkey);
   }
 })
-
 
 
 app.setName('OpenCopilot')
