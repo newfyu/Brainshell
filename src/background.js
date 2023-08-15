@@ -221,7 +221,6 @@ function updateAskHotkey(key) {
       const scptPath = path.join(__static, 'copyCmd.scpt');
       cmd = `osascript ${scptPath}`;
     } else {
-      win.hide();
       const scptPath = path.join(__static, 'copyCmd.vbs');
       cmd = `cscript ${scptPath}`;
     }
@@ -231,22 +230,19 @@ function updateAskHotkey(key) {
       console.error(`exec error: ${error}`);
       return;
     }
+
+    let text = clipboard.readText();
+    // 判断当前的data和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
+
+    text = clipboard.readText();
+    win.webContents.send('clipboard-data', text);
+    clipboardSave = text;
     setTimeout(() => {
-      let text = clipboard.readText();
-      // 判断当前的data和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容
-      if (text == clipboardSave) {
-        setTimeout(() => {
-          text = clipboard.readText();
-          win.webContents.send('clipboard-data', text);
-          clipboardSave = text;
-        }, 500);
-      } else {
-        win.webContents.send('clipboard-data', text);
-        clipboardSave = text;
-      }
+      win.show();
+      win.focus();
     }, 200);
-    win.show();
-    win.focus();
+
+
   });
   if (!isRegistered) {
     console.log('全局快捷键注册失败');
