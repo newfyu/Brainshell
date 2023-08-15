@@ -200,17 +200,8 @@ function updateAskHotkey(key) {
       const scptPath = path.join(__static, 'copyCmd.vbs');
       cmd = `cscript ${scptPath}`;
     }
-    try {
-      if (isMac) {
-        execSync(cmd);
-      } else {
-        execSync('powershell -Command "& {[System.Windows.Forms.SendKeys]::SendWait(\'^c\')}"');
-      }
-      
-    } catch (error) {
-      console.error(`exec error: ${error}`);
-      return;
-    }
+
+    execSync(cmd);
 
     let text = clipboard.readText();
     // 判断当前的data和clipboardSave是否相同，如果相同则怀疑新text还没有装入剪贴板，则再等待0.5秒后重新读取剪贴板内容，否则发送剪贴板内容

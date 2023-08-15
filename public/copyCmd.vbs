@@ -1,4 +1,4 @@
 Set WshShell = CreateObject("WScript.Shell")
-Wscript.sleep 100
+Wscript.sleep 200
 WshShell.SendKeys "^c"
-Wscript.sleep 500
+Wscript.sleep 400
