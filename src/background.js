@@ -214,6 +214,7 @@ function updateAskHotkey(key) {
 
     execSync(cmd);
 
+
     let text = clipboard.readText();
     win.webContents.send('clipboard-data', text);
     clipboardSave = text;

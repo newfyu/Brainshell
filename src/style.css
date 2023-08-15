@@ -309,6 +309,14 @@ ul {
     border-radius: 5px;
 }
 
+.hide-button{
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border-radius: 10px;
+    z-index: 9998;
+}
+
 .drag-area{
     flex-grow: 1;
     -webkit-app-region: drag;

@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CaretBottom } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -975,6 +975,9 @@ function toggleEditable(index) {
   }
 }
 
+function hideWin() {
+  getCurrentWindow().hide();
+}
 
 // 取消编辑模式
 function cancelEditable(index) {
@@ -1123,6 +1126,9 @@ function addCodeCopy() {
           {{ tag.name }}
         </el-tag>
       </div>
+      <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
+        <el-button size="small" text class="hide-button" :icon="CaretBottom" type="info" @click="hideWin"/>
+      </el-tooltip>
       <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }" @mouseover="inputAreaFocus"
         @mouseleave="inputAreaBlur">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
@@ -1136,6 +1142,7 @@ function addCodeCopy() {
           <el-button type="info" plain size="small" v-show="streaming" class="stop-button" @click="stopRequest">
             ⏹ Stop
           </el-button>
+         
 
           <div class="toolbar-inner">
             <div style="width: 160px;" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
