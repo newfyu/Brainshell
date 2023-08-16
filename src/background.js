@@ -6,8 +6,7 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
 
-
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, exec } = require('child_process');
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -208,23 +207,32 @@ function wait(ms) {
 function updateAskHotkey(key) {
   globalShortcut.unregisterAll();
   const isRegistered = globalShortcut.register(key, () => {
-    let cmd = ""
+    let cmd = "";
     if (isMac) {
-      const scptPath = path.join(__static, 'copyCmd.scpt');
+      const scptPath = path.join(__static, "copyCmd.scpt");
       cmd = `osascript ${scptPath}`;
     } else {
-      const scptPath = path.join(__static, 'copyCmd.vbs');
+      const scptPath = path.join(__static, "copyCmd.vbs");
       cmd = `cscript ${scptPath}`;
     }
 
-    execSync(cmd);
+    try {
+      const child = spawn(cmd, { shell: true });
+      const timeout = setTimeout(() => {
+        child.kill();
+      }, 1000);
 
+      child.on("exit", (code, signal) => {
+        clearTimeout(timeout);
+        let text = clipboard.readText();
+        win.webContents.send("clipboard-data", text);
+        clipboardSave = text;
+        win.show();
+      });
+    } catch (e) {
+      console.log(e);
+    }
 
-    let text = clipboard.readText();
-    win.webContents.send('clipboard-data', text);
-    clipboardSave = text;
-    // win.focus();
-    win.show();
   });
 }
 
@@ -243,15 +251,19 @@ if (isDevelopment) {
   }
 }
 
-
-
 app.on('before-quit', () => {
   isQuiting = true;
+  if (braindoorProcess) {
+    braindoorProcess.kill();
+    braindoorProcess = null;
+  }
+  globalShortcut.unregisterAll();
+  app.removeAllListeners('some-event');
 })
 
 app.on('will-quit', () => {
-  // 注销所有快捷键
-  globalShortcut.unregisterAll();
+
+  app.removeAllListeners('some-event');
 });
 
 
@@ -360,25 +372,24 @@ const braindoorLogToRender = () => {
   if (!braindoorProcess) {
     return;
   }
-
-  braindoorProcess.stdout.on('data', (data) => {
-    console.log(`braindoor: ${data}`);
-    win.webContents.send('message-from-main', `stdout: ${data}`);
-  });
-  braindoorProcess.stderr.on('data', (data) => {
-    console.error(`braindoor: ${data}`);
-    win.webContents.send('message-from-main', `${data}`);
-  });
-  braindoorProcess.on('close', (code) => {
-    console.log(`braindoor退出，退出码 ${code}`);
-    win.webContents.send('message-from-main', `braindoor退出，退出码 ${code}`);
-    braindoorProcess = null;
-  });
-  braindoorProcess.on('error', (err) => {
-    console.error(`启动braindoor出错：${err}`);
-    win.webContents.send('message-from-main', `braidoor出错：${err}`);
-    braindoorProcess = null;
-  });
+    // braindoorProcess.stdout.on('data', (data) => {
+    //   console.log(`braindoor: ${data}`);
+    //   win.webContents.send('message-from-main', `stdout: ${data}`);
+    // });
+    // braindoorProcess.stderr.on('data', (data) => {
+    //   console.error(`braindoor: ${data}`);
+    //   win.webContents.send('message-from-main', `${data}`);
+    // });
+    // braindoorProcess.on('close', (code) => {
+    //   console.log(`braindoor退出，退出码 ${code}`);
+    //   win.webContents.send('message-from-main', `braindoor退出，退出码 ${code}`);
+    //   braindoorProcess = null;
+    // });
+    // braindoorProcess.on('error', (err) => {
+    //   console.error(`启动braindoor出错：${err}`);
+    //   win.webContents.send('message-from-main', `braidoor出错：${err}`);
+    //   braindoorProcess = null;
+    // });
 }
 
 
