@@ -1,6 +1,6 @@
 'use strict'
 import fetch from 'node-fetch';
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog, screen } from 'electron'
 require('@electron/remote/main').initialize()
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
@@ -29,6 +29,9 @@ let hideTimer
 let autoHide = true
 let otherBraindoor = false
 let clipboardSave = null
+let winBoundSave = null
+let followMode = false
+
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
@@ -44,7 +47,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     show: false,
     skipTaskbar: true,
     minWidth: 400,
-    minHeight: 600,
+    minHeight: 400,
     // level: 'floating',
     webPreferences: {
 
@@ -71,10 +74,19 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   shiftMode = false
 
   win.on('close', (event) => {
+
+    if (winBoundSave) {
+      win.setBounds(winBoundSave)
+      followMode = false
+    }
+
+
     if (shiftMode) {
       win = null;
       return
     }
+
+
 
     if (!isQuiting) {
       event.preventDefault() // 阻止窗口关闭
@@ -84,6 +96,15 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
         braindoorProcess.kill();
       }
       app.quit();
+    }
+  })
+
+  win.on('hide', () => {
+    // 恢复winBoundSave中储存的位置和大小
+    if (winBoundSave) {
+      win.setBounds(winBoundSave)
+      followMode = false
+      win.webContents.send('follow-mode', followMode);
     }
   })
 
@@ -207,6 +228,18 @@ function wait(ms) {
 function updateAskHotkey(key) {
   globalShortcut.unregisterAll();
   const isRegistered = globalShortcut.register(key, () => {
+
+    //判断如果是Lock状态，1、先存储窗口的大小和位置；2、同时将窗口的大小设置为500x400；3、同时将窗口的坐标移动到鼠标位置
+    if (isLock && !followMode) {
+      winBoundSave = win.getBounds();
+      win.setSize(300, 400);
+      const mouse = screen.getCursorScreenPoint();
+      win.setPosition(Math.floor(mouse.x), Math.floor(mouse.y - 200));
+      followMode = true;
+      // 发送消息给渲染进程，目前followMode的状态
+      win.webContents.send('follow-mode', followMode);
+    }
+
     let cmd = "";
     if (isMac) {
       const scptPath = path.join(__static, "copyCmd.scpt");

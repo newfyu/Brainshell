@@ -133,6 +133,7 @@ let showHistory = ref(false)
 let historyRef = ref(null)
 let queryResult = ref([]) // 历史记录查结果
 let query = ref(null) // 历史记录查询词
+let followMode = ref(false)
 const historyLoading = ref(false)
 
 // 从localstorage中读取keepTag的值, 默认true,用于是否在提交后是否删除标签
@@ -169,10 +170,6 @@ watch(theme, async (newVal) => {
   updateTheme()
 })
 provide('theme', theme)
-
-
-
-
 
 
 currentWindow.on('resize', () => {
@@ -647,19 +644,19 @@ function onKeyDown(event) {
   }
 
   // 按下ctrl+[，显示上一页
-  if (event.ctrlKey && event.key === '[' && process.platform !== 'darwin') {
+  if (event.ctrlKey && event.key === '[' && process.platform !== 'darwin' && !followMode.value) {
     nextPage();
     return;
-  } else if (event.metaKey && event.key === '[' && process.platform === 'darwin') {
+  } else if (event.metaKey && event.key === '[' && process.platform === 'darwin' && !followMode.value) {
     nextPage();
     return;
   }
 
   // 按下ctrl+]，显示下一页
-  if (event.ctrlKey && event.key === ']' && process.platform !== 'darwin') {
+  if (event.ctrlKey && event.key === ']' && process.platform !== 'darwin' && !followMode.value) {
     prevPage();
     return;
-  } else if (event.metaKey && event.key === ']' && process.platform === 'darwin') {
+  } else if (event.metaKey && event.key === ']' && process.platform === 'darwin' && !followMode.value) {
     prevPage();
     return;
   }
@@ -946,6 +943,12 @@ onMounted(async () => {
     });
   });
 
+  // 接收到主进程发送follow-mode的消息，follow-mode的值为true或false
+  ipcRenderer.on('follow-mode', (event, mode) => {
+    followMode.value = mode;
+  });
+
+
   //从localstorage中读取askHotkey的值，如果有，发送到主进程
   const askHotkey = localStorage.getItem('askHotkey');
   if (askHotkey) {
@@ -1149,7 +1152,7 @@ function addCodeCopy() {
               <el-tooltip content="新建对话 cmd/ctrl+t" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
-                    v-show="!streaming && connected" />
+                    v-show="!streaming && connected && !followMode" />
                 </Transition>
               </el-tooltip>
               <el-popconfirm title="确定删除当前对话?" :hide-after="0" confirm-button-type="danger" position="top"
@@ -1157,19 +1160,19 @@ function addCodeCopy() {
                 <template #reference>
                   <Transition name="fade">
                     <el-button :icon="Delete" text circle type="info" :disabled="streaming"
-                      v-show="!streaming && connected" />
+                      v-show="!streaming && connected && !followMode" />
                   </Transition>
                 </template>
               </el-popconfirm>
               <el-tooltip content="无框" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
-                    v-show="!streaming && connected" />
+                    v-show="!streaming && connected && !followMode" />
                 </Transition>
               </el-tooltip>
 
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming" :disabled="streaming"
+                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming && !followMode" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>
             </div>
@@ -1180,7 +1183,7 @@ function addCodeCopy() {
             </el-tooltip>
 
             <!-- <el-col :span="7" class="right-align" v-show="!streaming && connected"> -->
-            <div class="page-box" v-show="!streaming && connected">
+            <div class="page-box" v-show="!streaming && connected && !followMode">
               <el-button :icon="ArrowLeft" link circle type="info" @click="nextPage"
                 :disabled="streaming && !connected" />
               <el-tooltip content="查询历史" placement="top" :hide-after="hideAfter">

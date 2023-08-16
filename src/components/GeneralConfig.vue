@@ -63,7 +63,7 @@
         <el-button type="primary" @click="setAskHotkey">设置</el-button>
         <el-button @click="restorDefaultHotkey">默认</el-button>
         <el-tooltip content="该功能需要打开辅助功能权限，请在“隐私与安全”-“辅助功能”中添加OpenCopilot" placement="top" :hide-after="hideAfter">
-          <el-button @click="openAccessibility" v-show="isMac">打开权限</el-button>
+          <el-button @click="openAccessibility" v-show="isMac">添加权限</el-button>
         </el-tooltip>
         
       </el-form-item>
