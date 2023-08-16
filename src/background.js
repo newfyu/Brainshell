@@ -17,7 +17,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const isMac = process.platform === 'darwin';
-const defaultAskHotkey = isMac ? 'Option+K' : 'Alt+K';
+const defaultAskHotkey = isMac ? 'Option+J' : 'Alt+J';
 
 let win = null
 let tray = null

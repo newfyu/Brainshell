@@ -84,10 +84,11 @@
 <script setup>
 import { ref, onMounted, inject, watch} from 'vue'
 import axios from 'axios';
-import { remote,ipcRenderer } from "electron"
+import { ipcRenderer } from "electron"
 import os from 'os';
 import path from 'path';
 import { ElMessage } from 'element-plus'
+const { shell } = require('@electron/remote');
 
 let apikey = ref('')
 let proxy = ref('')
@@ -155,12 +156,12 @@ const saveConfig = () => {
 
 const openLogFile = () => {
   const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');
-  remote.shell.openPath(logFilePath);
+  shell.openPath(logFilePath);
 }
 
 const openDir = () => {
   const dirPath = path.join(os.homedir(), 'braindoor');
-  remote.shell.openPath(dirPath);
+  shell.openPath(dirPath);
 }
 
 function simplifyCode(code) {

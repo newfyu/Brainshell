@@ -480,7 +480,7 @@ const contactBrainoor = () => {
     });
 
     if (!isLock) {
-      QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`shift-enter`  \n- 智能标签：`/`  \n- 新建对话：`cmd/ctrl + t`  \n- 查询历史：`cmd/ctrl + f`  \n- <rearslot><br>&nbsp;首次使用需要设置OpenAI的Key&nbsp;<a href="#" onClick="testFn()">点此设置</a><br>&nbsp;更多<a href="https://gitee.com/vmn171/OpenCopilot">帮助</a></rearslot>']];
+      QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`shift-enter`  \n- 智能标签：`/`  \n- 新建对话：`cmd/ctrl + t`  \n- 查询历史：`cmd/ctrl + f`  \n- <rearslot><br>&nbsp;首次使用需要设置OpenAI的Key&nbsp;<a href="#" onClick="testFn()">点此设置</a><br>&nbsp;更多<a href="https://opencopilot.rtfd.io">帮助</a></rearslot>']];
       md2html();
       // clearInterval(retryId);
 
