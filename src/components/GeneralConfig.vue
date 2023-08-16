@@ -61,7 +61,11 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="setAskHotkey">设置</el-button>
-        <el-button @click="restorDefaultHotkey">恢复默认</el-button>
+        <el-button @click="restorDefaultHotkey">默认</el-button>
+        <el-tooltip content="该功能需要打开辅助功能权限，请在“隐私与安全”-“辅助功能”中添加OpenCopilot" placement="top" :hide-after="hideAfter">
+          <el-button @click="openAccessibility" v-show="isMac">打开权限</el-button>
+        </el-tooltip>
+        
       </el-form-item>
 
     <el-divider />
@@ -88,6 +92,7 @@ import { ipcRenderer } from "electron"
 import os from 'os';
 import path from 'path';
 import { ElMessage } from 'element-plus'
+
 const { shell } = require('@electron/remote');
 
 let apikey = ref('')
@@ -100,9 +105,10 @@ let hideAfter = ref(0)
 let step = ref(500)
 let autoHide = ref(false)
 const askHotKey = ref('');
+const isMac = process.platform === 'darwin' ? true : false
 
-const isMac = window.navigator.userAgent.includes('Mac');
-const defaultAskHotkey = isMac ? 'Option+K' : 'Alt+K';
+// const isMac = window.navigator.userAgent.includes('Mac');
+const defaultAskHotkey = isMac ? 'Option+J' : 'Alt+J';
 
 // 监测autoHide的值的变化，并发送给主进程
 autoHide.value = localStorage.getItem('autoHide') === "true"
@@ -245,6 +251,12 @@ function loadHotkeyFromLocalStorage() {
     askHotKey.value = defaultAskHotkey;
   }
 }
+
+// 使用shell打开Accessibility设置页面
+function openAccessibility() {
+  shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
+}
+
 
 onMounted(() => {
   keepTag.value = localStorage.getItem('keepTag') === "true" 
