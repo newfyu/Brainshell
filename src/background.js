@@ -111,6 +111,19 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   win.on('blur', () => {
     // 启动计时器，在一段时间后隐藏窗口
     // 从localStorage中获取autoHide的值，如果为true，才执行下面的自动隐藏逻辑
+    if (followMode) {
+      if (isMac){
+        win.hide()
+      }else{
+        if (winBoundSave) {
+          followMode = false
+          win.webContents.send('follow-mode', followMode);
+          win.setBounds(winBoundSave)
+        }
+        win.minimize()
+      }
+    }
+
     if (autoHide) {
       hideTimer = setTimeout(() => {
         if (isMac) {
@@ -137,12 +150,6 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   require('@electron/remote/main').enable(win.webContents);
 }
 
-
-
-// Quit when all windows are closed.
-app.on('window-all-closed', () => {
-
-})
 
 
 app.on('activate', () => {
