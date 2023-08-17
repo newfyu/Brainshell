@@ -979,7 +979,13 @@ function toggleEditable(index) {
 }
 
 function hideWin() {
-  getCurrentWindow().hide();
+  if(isMac){
+    getCurrentWindow().hide();
+  } else {
+    // 给主进程发一个最小化的消息
+    ipcRenderer.send('clickMinimize');
+  }
+  
 }
 
 // 取消编辑模式

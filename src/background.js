@@ -105,13 +105,19 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     }
   })
 
+
+
   // 监听窗口失去焦点的事件
   win.on('blur', () => {
     // 启动计时器，在一段时间后隐藏窗口
     // 从localStorage中获取autoHide的值，如果为true，才执行下面的自动隐藏逻辑
     if (autoHide) {
       hideTimer = setTimeout(() => {
-        win.hide()
+        if (isMac) {
+          win.hide()
+        } else {
+          win.minimize()
+        }
       }, 60000) // 60秒后隐藏窗口
     }
   }
@@ -164,6 +170,7 @@ app.on('ready', async () => {
   createWindow()
   require('@electron/remote/main').enable(win.webContents);
 
+
   // 设置托盘
   tray = new Tray(path.join(__static, 'tray.png'))
   tray.on('click', () => {
@@ -211,6 +218,7 @@ app.on('ready', async () => {
       const zoomOutMenuItem = viewMenu.items.find(item => item.label === 'Zoom Out');
       zoomOutMenuItem.enabled = false;
     }
+
   }
 
   // 全局Ask
@@ -231,12 +239,10 @@ function updateAskHotkey(key) {
 
     //判断如果是Lock状态，1、先存储窗口的大小和位置；2、同时将窗口的大小设置为500x400；3、同时将窗口的坐标移动到鼠标位置
     if (isLock) {
-      if (!followMode){
+      if (!followMode) {
         winBoundSave = win.getBounds();
       }
-      win.setSize(300, 400);
-      const mouse = screen.getCursorScreenPoint();
-      win.setPosition(Math.floor(mouse.x), Math.floor(mouse.y - 200));
+
       followMode = true;
       // 发送消息给渲染进程，目前followMode的状态
       win.webContents.send('follow-mode', followMode);
@@ -262,6 +268,19 @@ function updateAskHotkey(key) {
         let text = clipboard.readText();
         win.webContents.send("clipboard-data", text);
         clipboardSave = text;
+        if (followMode) {
+          if (win.isMinimized()) {
+            win.restore();
+          }
+
+          const mouse = screen.getCursorScreenPoint();
+          if (isMac) {
+            win.setPosition(Math.floor(mouse.x), Math.floor(mouse.y - 200));
+            win.setSize(400, 400);
+          } else {
+            win.setBounds({ x: Math.floor(mouse.x), y: Math.floor(mouse.y - 200), width: 400, height: 400 });
+          }
+        }
         win.show();
       });
     } catch (e) {
@@ -407,24 +426,24 @@ const braindoorLogToRender = () => {
   if (!braindoorProcess) {
     return;
   }
-    // braindoorProcess.stdout.on('data', (data) => {
-    //   console.log(`braindoor: ${data}`);
-    //   win.webContents.send('message-from-main', `stdout: ${data}`);
-    // });
-    // braindoorProcess.stderr.on('data', (data) => {
-    //   console.error(`braindoor: ${data}`);
-    //   win.webContents.send('message-from-main', `${data}`);
-    // });
-    // braindoorProcess.on('close', (code) => {
-    //   console.log(`braindoor退出，退出码 ${code}`);
-    //   win.webContents.send('message-from-main', `braindoor退出，退出码 ${code}`);
-    //   braindoorProcess = null;
-    // });
-    // braindoorProcess.on('error', (err) => {
-    //   console.error(`启动braindoor出错：${err}`);
-    //   win.webContents.send('message-from-main', `braidoor出错：${err}`);
-    //   braindoorProcess = null;
-    // });
+  // braindoorProcess.stdout.on('data', (data) => {
+  //   console.log(`braindoor: ${data}`);
+  //   win.webContents.send('message-from-main', `stdout: ${data}`);
+  // });
+  // braindoorProcess.stderr.on('data', (data) => {
+  //   console.error(`braindoor: ${data}`);
+  //   win.webContents.send('message-from-main', `${data}`);
+  // });
+  // braindoorProcess.on('close', (code) => {
+  //   console.log(`braindoor退出，退出码 ${code}`);
+  //   win.webContents.send('message-from-main', `braindoor退出，退出码 ${code}`);
+  //   braindoorProcess = null;
+  // });
+  // braindoorProcess.on('error', (err) => {
+  //   console.error(`启动braindoor出错：${err}`);
+  //   win.webContents.send('message-from-main', `braidoor出错：${err}`);
+  //   braindoorProcess = null;
+  // });
 }
 
 
@@ -492,5 +511,15 @@ ipcMain.on('setAskHotkey', (event, arg) => {
   }
 })
 
+
+// 接收来自渲染进程的clickMinimize消息，先setbounds，然后minimize
+ipcMain.on('clickMinimize', (event, arg) => {
+  if (winBoundSave) {
+    followMode = false
+    win.webContents.send('follow-mode', followMode);
+    win.setBounds(winBoundSave)
+  }
+  win.minimize();
+})
 
 app.setName('OpenCopilot')
