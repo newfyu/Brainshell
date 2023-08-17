@@ -45,7 +45,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     alwaysOnTop: top,
     resizable: true,
     show: false,
-    skipTaskbar: true,
+    skipTaskbar: false,
     minWidth: 400,
     minHeight: 400,
     // level: 'floating',
@@ -80,13 +80,10 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       followMode = false
     }
 
-
     if (shiftMode) {
       win = null;
       return
     }
-
-
 
     if (!isQuiting) {
       event.preventDefault() // 阻止窗口关闭
@@ -145,6 +142,9 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
+  if (win) {
+    win.show();
+  }
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
     win.once('ready-to-show', () => {
@@ -230,8 +230,10 @@ function updateAskHotkey(key) {
   const isRegistered = globalShortcut.register(key, () => {
 
     //判断如果是Lock状态，1、先存储窗口的大小和位置；2、同时将窗口的大小设置为500x400；3、同时将窗口的坐标移动到鼠标位置
-    if (isLock && !followMode) {
-      winBoundSave = win.getBounds();
+    if (isLock) {
+      if (!followMode){
+        winBoundSave = win.getBounds();
+      }
       win.setSize(300, 400);
       const mouse = screen.getCursorScreenPoint();
       win.setPosition(Math.floor(mouse.x), Math.floor(mouse.y - 200));
