@@ -52,17 +52,17 @@
 
     <el-divider />
     
-    <el-form-item label="全局Ask热键: ">
-      <el-tooltip content="设置全局Ask的快捷键，注意这是系统级的全局快捷键，可能和系统中已有快捷键发送冲突！" placement="top" :hide-after="hideAfter">
+    <el-form-item label="全局Chat: ">
+      <el-tooltip content="设置全局Chat的快捷键，注意这是系统级的全局快捷键，可能和系统中已有快捷键发送冲突！" placement="top" :hide-after="hideAfter">
         <el-input v-model="askHotKey" @keydown.prevent="recordAskHotkey">
         </el-input>
       </el-tooltip>
         
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="setAskHotkey">设置</el-button>
+        <el-button type="primary" @click="setAskHotkey">确定</el-button>
         <el-button @click="restorDefaultHotkey">默认</el-button>
-        <el-tooltip content="该功能需要打开辅助功能权限，请在“隐私与安全”-“辅助功能”中添加OpenCopilot" placement="top" :hide-after="hideAfter">
+        <el-tooltip content="该功能需要在“隐私与安全”-“辅助功能”中添加OpenCopilot" placement="top" :hide-after="hideAfter">
           <el-button @click="openAccessibility" v-show="isMac">添加权限</el-button>
         </el-tooltip>
         
@@ -108,7 +108,7 @@ const askHotKey = ref('');
 const isMac = process.platform === 'darwin' ? true : false
 
 // const isMac = window.navigator.userAgent.includes('Mac');
-const defaultAskHotkey = isMac ? 'Option+J' : 'Alt+J';
+const defaultAskHotkey = isMac ? 'Option+C' : 'Alt+C';
 
 // 监测autoHide的值的变化，并发送给主进程
 autoHide.value = localStorage.getItem('autoHide') === "true"
@@ -200,7 +200,7 @@ function simplifyCode(code) {
 
 }
 
-// 记录全局Ask快捷键
+// 记录全局Chat快捷键
 function recordAskHotkey(event) {
   event.preventDefault();
   let keys = [];

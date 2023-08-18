@@ -52,6 +52,7 @@ import { FolderAdd } from '@element-plus/icons-vue'
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { ipcRenderer} from "electron"
+const { dialog } = require('@electron/remote');
 let baseName = ref('')
 let dirPath = ref('')
 let fileTyep = ref([])
@@ -66,7 +67,6 @@ let running = ref(false)
 
 
 function chooseDir() {
-  const { dialog } = require('electron').remote
   dialog.showOpenDialog({
     properties: ['openDirectory']
   }).then(result => {

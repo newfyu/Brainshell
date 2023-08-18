@@ -17,7 +17,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 const isMac = process.platform === 'darwin';
-const defaultAskHotkey = isMac ? 'Option+J' : 'Alt+J';
+const defaultAskHotkey = isMac ? 'Option+C' : 'Alt+C';
 
 let win = null
 let tray = null
@@ -27,10 +27,11 @@ let shiftMode = false;
 let braindoorProcess = null;
 let hideTimer
 let autoHide = true
-let otherBraindoor = false
 let clipboardSave = null
+let otherBraindoor = false
 let winBoundSave = null
 let followMode = false
+let blurTimeStart = null
 
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -105,16 +106,17 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     }
   })
 
-
-
   // 监听窗口失去焦点的事件
   win.on('blur', () => {
     // 启动计时器，在一段时间后隐藏窗口
-    // 从localStorage中获取autoHide的值，如果为true，才执行下面的自动隐藏逻辑
+
     if (followMode) {
-      if (isMac){
-        win.hide()
-      }else{
+      if (isMac) {
+        const elapsedTime = Date.now() - blurTimeStart;
+        if (elapsedTime > 1000) {
+          win.hide()
+        } 
+      } else {
         if (winBoundSave) {
           followMode = false
           win.webContents.send('follow-mode', followMode);
@@ -137,6 +139,11 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   )
 
   win.on('show', () => {
+
+    if (followMode && isMac) {
+      blurTimeStart = Date.now()
+    }
+
     setTimeout(() => {
       win.focus();
     }, 200);
