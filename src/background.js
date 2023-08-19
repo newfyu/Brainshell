@@ -59,6 +59,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
       enableRemoteModule: true,
       webSecurity: false,
+      webviewTag: true,
       zoomFactor: 1
     }
   })
