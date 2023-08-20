@@ -568,4 +568,29 @@ ipcMain.on('clickMinimize', (event, arg) => {
   win.minimize();
 })
 
+// 接收来自渲染进程的zoom消息，将窗口大小设置为屏幕大小的3/4，并且居中
+ipcMain.on('zoom', (event, arg) => {
+  // 存储当前窗口的大小和位置
+  winBoundSave = win.getBounds();
+  // 获取窗口的当前位置
+  const currentPoint = { x: winBoundSave.x, y: winBoundSave.y };
+  // 根据窗口的位置得到最近的显示屏
+  const display = screen.getDisplayNearestPoint(currentPoint);
+  // 获取当前屏幕的工作区域尺寸
+  const { width, height } = display.workAreaSize;
+  win.setBounds({
+    x: parseInt(width / 6),
+    y: parseInt(height / 10),
+    width: parseInt(width * 2 / 3),
+    height: parseInt(height * 4 / 5)
+  });
+  win.center();
+})
+
+// 接收来自渲染进程的zoomRestore消息，将窗口恢复winBoundSave的大小和位置
+ipcMain.on('zoomRestore', (event, arg) => {
+  win.setBounds(winBoundSave);
+})
+
+
 app.setName('OpenCopilot')

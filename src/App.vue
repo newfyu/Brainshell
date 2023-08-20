@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CaretBottom,ChromeFilled, Refresh } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -142,6 +142,7 @@ const hoverNewPage = ref(false)
 const historyLoading = ref(false)
 const WebChatRef1 = ref(null)
 const WebChatRef2 = ref(null)
+let zoomed = false
 
 // 从localstorage中读取keepTag的值, 默认true,用于是否在提交后是否删除标签
 let keepTag = ref(localStorage.getItem('keepTag') === 'false' ? false : true)
@@ -1092,6 +1093,18 @@ function refreshChildWebview() {
   WebChatRef2.value.refreshWebview();
 }
 
+function zoomWin(){
+  // 第一次按下的时候，向主进程发送放大消息
+  // 再次按下的时候，向主进程发送恢复消息
+  if(!zoomed){
+    ipcRenderer.send('zoom');
+    zoomed = true;
+  } else {
+    ipcRenderer.send('zoomRestore');
+    zoomed = false;
+  }
+}
+
 </script>
 
 ////////////////////////////////////////////
@@ -1250,9 +1263,20 @@ function refreshChildWebview() {
     </el-drawer>
     <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false">
       <template #header="{ close, titleId, titleClass }">
-      <h4 :id="titleId" :class="titleClass">WebChat</h4>
-      <el-button text :icon="Refresh" circle @click="refreshChildWebview"/>
-      <el-button text :icon="Close" circle @click="close"/>
+      <h4 :id="titleId" :class="titleClass" class="drag-area">WebChat</h4>
+      <el-tooltip content="刷新" placement="top" :hide-after="hideAfter">
+        <el-button text :icon="Refresh" circle @click="refreshChildWebview"/>
+      </el-tooltip>
+      <el-tooltip content="缩放窗口" placement="top" :hide-after="hideAfter">
+        <el-button text :icon="Switch" circle @click="zoomWin"/>
+      </el-tooltip>
+      <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
+        <el-button text :icon="CaretBottom" circle @click="hideWin"/>
+      </el-tooltip>
+      <el-tooltip content="关闭WebChat" placement="top" :hide-after="hideAfter">
+        <el-button text :icon="CloseBold" circle @click="close"/>
+      </el-tooltip>
+      
     </template>
       <el-tabs v-model="activeWebTab" class="web-tabs">
         <el-tab-pane label="ChatGPT" name="chatgpt-web" class="web-pane">
