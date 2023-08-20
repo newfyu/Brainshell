@@ -1,0 +1,13 @@
+diff --git a/node_modules/markdown-it-code-copy/index.js b/node_modules/markdown-it-code-copy/index.js
+index 858a297..3701c65 100644
+--- a/node_modules/markdown-it-code-copy/index.js
++++ b/node_modules/markdown-it-code-copy/index.js
+@@ -23,7 +23,7 @@ function renderCode(origRule, options) {
+ 		const [tokens, idx] = args;
+ 		const content = tokens[idx].content
+ 			.replaceAll('"', '&quot;')
+-			.replaceAll("'", "&lt;");
++			// .replaceAll("'", "&lt;");
+ 		const origRendered = origRule(...args);
+ 
+ 		if (content.length === 0)
