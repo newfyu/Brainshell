@@ -1,16 +1,9 @@
 <template>
-   <webview
-    ref="webviewRef"
-    src="https://claude.ai/chats"
-    style="display:inline-flex; width:350px; height:600px;"
-    @new-window="handleNewWindow"
-    @will-navigate="handleNavigation"
-  ></webview>
   <img alt="DeskBrain logo" src="../assets/logo.png" class="center">
   <el-row justify="center"><el-text>
       <h1>OpenCopilot</h1>
     </el-text></el-row>
-  <el-row justify="center"><el-text size="large">Version 0.5.0</el-text></el-row>
+  <el-row justify="center"><el-text size="large">Version 0.6.0 dev</el-text></el-row>
   <!-- <el-row justify="center"><el-text><h3>帮助文档</h3></el-text></el-row> -->
   <!-- <el-row justify="center"><a href="https://gitee.com/vmn171/deskbrain">https://gitee.com/vmn171/deskbrain</a></el-row> -->
 
@@ -37,18 +30,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-const webviewRef = ref(null);
-
-const handleNewWindow = (e) => {
-  e.preventDefault();
-  webviewRef.value.loadURL(e.url);
-}
-
-const handleNavigation = (e) => {
-  e.preventDefault();
-  webviewRef.value.loadURL(e.url);
-}
 
 </script>
 

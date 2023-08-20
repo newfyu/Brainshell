@@ -1,10 +1,11 @@
 'use strict'
 import fetch from 'node-fetch';
-import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog, screen } from 'electron'
+import { app, protocol, BrowserWindow, ipcMain, shell, Menu, nativeTheme, Tray, globalShortcut, clipboard, dialog, screen, session } from 'electron'
 require('@electron/remote/main').initialize()
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
+import yaml from 'js-yaml';
 
 const { spawn, execSync, exec } = require('child_process');
 
@@ -26,12 +27,13 @@ let isQuiting = false;
 let shiftMode = false;
 let braindoorProcess = null;
 let hideTimer
-let autoHide = true
+let autoHide = false;
 let clipboardSave = null
 let otherBraindoor = false
 let winBoundSave = null
 let followMode = false
 let blurTimeStart = null
+let isOpenExternal = true
 
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -67,11 +69,13 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+    // await win.loadURL("https://chat.openai.com/")
     // if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     createProtocol('app')
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
+
   } ``
   shiftMode = false
 
@@ -116,7 +120,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
         const elapsedTime = Date.now() - blurTimeStart;
         if (elapsedTime > 1000) {
           win.hide()
-        } 
+        }
       } else {
         if (winBoundSave) {
           followMode = false
@@ -236,8 +240,9 @@ app.on('ready', async () => {
 
   }
 
-  // 全局Ask
+  // 全局Chat快捷键
   updateAskHotkey(defaultAskHotkey);
+
 })
 
 function wait(ms) {
@@ -373,16 +378,42 @@ ipcMain.on('restart-braindoor', () => {
   }, 10000);
 })
 
+// 接收来自渲染进程的消息webDrawerOpen，获得该消息后设置代理
+ipcMain.on('webDrawerOpen', async (event, param1) => {
+  try {
+    isOpenExternal = false;
 
-//外部打开链接
+    //从~/brainoodr/config.yaml中读取proxy字段，作为代理的地址
+    const configPath = path.join(app.getPath('home'), 'braindoor', 'config.yaml');
+    const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+    const proxy = config.proxy;
+    const proxyRules = { proxyRules: `http=${proxy};https=${proxy}` };
+    await session.defaultSession.setProxy(proxyRules);
+  } catch (error) {
+    dialog.showErrorBox('Error', error.message);
+  }
+})
+
+// 接收来自渲染进程的消息webDrawerOpen，获得该消息后取消代理
+ipcMain.on('webDrawerClose', async (event, param1) => {
+  isOpenExternal = true;
+  const proxyRules = { proxyRules: 'direct://' };
+  await session.defaultSession.setProxy(proxyRules);
+})
+
+// 外部打开链接
 app.on('web-contents-created', (e, webContents) => {
   webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: 'deny' };
+    if (isOpenExternal) {
+      shell.openExternal(url);
+      return { action: 'deny' };
+    }
   });
   webContents.on('will-navigate', (event, url) => {
-    event.preventDefault();
-    shell.openExternal(url);
+    if (isOpenExternal) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
   });
 });
 

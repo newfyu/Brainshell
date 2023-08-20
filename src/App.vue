@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CaretBottom } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, Close, CaretBottom,ChromeFilled, Refresh } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -13,6 +13,8 @@ import GeneralConfig from './components/GeneralConfig.vue';
 import AboutThis from './components/AboutThis.vue';
 import CreateBase from './components/CreateBase.vue';
 import UpdateBase from './components/UpdateBase.vue';
+import WebChat from './components/WebChat.vue';
+import WebChat2 from './components/WebChat2.vue';
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import markdownItCopy from 'markdown-it-code-copy';
 import MarkdownItTaskLists from 'markdown-it-task-lists';
@@ -67,7 +69,9 @@ let scrollbarRef = ref(null); // 滚动条的ref，控制滚动
 let inputText = ref('')  // 主输入框的内容
 let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
 const drawer = ref(false)
-const activeName = ref('normal')
+const webDrawer = ref(false)
+const activeSettingTab = ref('normal')
+const activeWebTab = ref('chatgpt-web')
 const hideAfter = ref(0)
 let currentWindow = getCurrentWindow();
 let isLock = !currentWindow.isResizable() // 是否锁定窗口
@@ -134,7 +138,10 @@ let historyRef = ref(null)
 let queryResult = ref([]) // 历史记录查结果
 let query = ref(null) // 历史记录查询词
 let followMode = ref(false)
+const hoverNewPage = ref(false)
 const historyLoading = ref(false)
+const WebChatRef1 = ref(null)
+const WebChatRef2 = ref(null)
 
 // 从localstorage中读取keepTag的值, 默认true,用于是否在提交后是否删除标签
 let keepTag = ref(localStorage.getItem('keepTag') === 'false' ? false : true)
@@ -477,7 +484,7 @@ const contactBrainoor = () => {
     });
 
     if (!isLock) {
-      QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`Shift-Enter`  \n- 功能标签：`/`  \n- 新建对话：`Cmd/Ctrl + T`  \n- 查询历史：`Cmd/Ctrl + F`  \n- 全局Chat：`Option/Alt + L (默认)`  \n- <rearslot><br>&nbsp;首次使用需要&nbsp;<a href="#" onClick="testFn()">设置OpenAI Key</a><br>&nbsp;更多<a href="https://opencopilot.rtfd.io">帮助</a></rearslot>']];
+      QAcontext.value = [['正在启动……', '#### OpenCopilot启动成功，可以对话了  \n- 换行：`Shift-Enter`  \n- 功能标签：`/`  \n- 新建对话：`Cmd/Ctrl + T`  \n- 查询历史：`Cmd/Ctrl + F`  \n- 全局Chat：`Option/Alt + L (默认)`  \n- <rearslot><br>&nbsp;首次使用需要&nbsp;<a href="#" onClick="testFn()">设置OpenAI Key</a><br>&nbsp;更多 <a href="https://opencopilot.rtfd.io">帮助</a></rearslot>']];
       md2html();
       // clearInterval(retryId);
 
@@ -946,6 +953,10 @@ onMounted(async () => {
   // 接收到主进程发送follow-mode的消息，follow-mode的值为true或false
   ipcRenderer.on('follow-mode', (event, mode) => {
     followMode.value = mode;
+    if (followMode.value) {
+      drawer.value = false;
+      webDrawer.value = false;
+    }
   });
 
 
@@ -1064,7 +1075,21 @@ function addCodeCopy() {
       }
     });
   });
+}
 
+function handleWebDrawerOpen() {
+  // 向主进程发送一个消失，告知WebDrawer打开了
+  ipcRenderer.send('webDrawerOpen');
+}
+
+function handleWebDrawerClose() {
+  // 向主进程发送一个消失，告知WebDrawer关闭了
+  ipcRenderer.send('webDrawerClose');
+}
+
+function refreshChildWebview() {
+  WebChatRef1.value.refreshWebview();
+  WebChatRef2.value.refreshWebview();
 }
 
 </script>
@@ -1143,7 +1168,7 @@ function addCodeCopy() {
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
-            :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur"
+            :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur" @mouseover="hoverNewPage = false"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown" autofocus>
           </el-input>
         </el-row>
@@ -1157,7 +1182,7 @@ function addCodeCopy() {
             <div style="width: 160px;" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话 cmd/ctrl+t" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
-                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
+                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming" @mouseover="hoverNewPage = true"
                     v-show="!streaming && connected && !followMode" />
                 </Transition>
               </el-tooltip>
@@ -1166,25 +1191,30 @@ function addCodeCopy() {
                 <template #reference>
                   <Transition name="fade">
                     <el-button :icon="Delete" text circle type="info" :disabled="streaming"
-                      v-show="!streaming && connected && !followMode" />
+                      v-show="!streaming && connected && !followMode && !hoverNewPage"  />
                   </Transition>
                 </template>
               </el-popconfirm>
               <el-tooltip content="无框" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
-                    v-show="!streaming && connected && !followMode" />
+                    v-show="!streaming && connected && !followMode && !hoverNewPage" />
                 </Transition>
               </el-tooltip>
 
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming && !followMode" :disabled="streaming"
+                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming && !followMode && !hoverNewPage" :disabled="streaming"
                   @click="drawer = true" />
+              </el-tooltip>
+
+              <el-tooltip content="WebChat" placement="top" :hide-after="hideAfter">
+                <el-button :icon="ChromeFilled" text circle type="info" v-show="connected && !streaming && !followMode && hoverNewPage" :disabled="streaming"
+                  @click="webDrawer = true" />
               </el-tooltip>
             </div>
 
             <el-tooltip content="可拖动区域" placement="top" :hide-after="hideAfter">
-              <div class="drag-area">
+              <div class="drag-area" @mouseover="hoverNewPage=false">
               </div>
             </el-tooltip>
 
@@ -1203,7 +1233,7 @@ function addCodeCopy() {
       </div>
     </div>
     <el-drawer v-model="drawer" title="设置" :with-header="true" direction="btt" size="90%" destroy-on-close>
-      <el-tabs v-model="activeName" class="demo-tabs">
+      <el-tabs v-model="activeSettingTab" class="demo-tabs">
         <el-tab-pane label="常规" name="normal">
           <GeneralConfig />
         </el-tab-pane>
@@ -1217,6 +1247,21 @@ function addCodeCopy() {
           <AboutThis />
         </el-tab-pane>
       </el-tabs>
+    </el-drawer>
+    <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false">
+      <template #header="{ close, titleId, titleClass }">
+      <h4 :id="titleId" :class="titleClass">WebChat</h4>
+      <el-button text :icon="Refresh" circle @click="refreshChildWebview"/>
+      <el-button text :icon="Close" circle @click="close"/>
+    </template>
+      <el-tabs v-model="activeWebTab" class="web-tabs">
+        <el-tab-pane label="ChatGPT" name="chatgpt-web" class="web-pane">
+          <WebChat ref="WebChatRef1" />
+        </el-tab-pane>
+        <el-tab-pane label="Claude2" name="claude-web" class="web-pane">
+          <WebChat2 ref="WebChatRef2" />
+        </el-tab-pane>
+      </el-tabs>  
     </el-drawer>
   </el-footer>
 

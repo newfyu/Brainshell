@@ -1,1 +1,16 @@
-致：刘晗感谢您购买了我们的正版软件授权码，以下是相关授权信息：Parallels Desktop 虚拟机 18 【标准永久版】姓名：刘晗邮箱：154883074@qq.com
+
+> [!todo] TODO
+> ```query
+tag:#TODO
+
+> [!example] DOING
+> ```query
+tag:#DOING OR tag:#暂停
+
+pip加速命令，顺序很重要 
+```shell
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn -r requirement.txt
+```
+
+ranger的安装
+pip install ranger-fm

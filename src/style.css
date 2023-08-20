@@ -338,3 +338,19 @@ ul {
 .code-copy-button:active {
     filter: invert(0);
 }
+
+.web-tabs{
+    height:100%;
+}
+
+.web-pane{
+    height:100%;
+}
+
+.el-tabs__content{
+    height:inherit;
+}
+
+.el-drawer__header{
+    margin-bottom: 0px;
+}
