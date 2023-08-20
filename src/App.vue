@@ -15,6 +15,7 @@ import CreateBase from './components/CreateBase.vue';
 import UpdateBase from './components/UpdateBase.vue';
 import WebChat from './components/WebChat.vue';
 import WebChat2 from './components/WebChat2.vue';
+import WebChat3 from './components/WebChat3.vue';
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import markdownItCopy from 'markdown-it-code-copy';
 import MarkdownItTaskLists from 'markdown-it-task-lists';
@@ -1284,6 +1285,9 @@ function zoomWin(){
         </el-tab-pane>
         <el-tab-pane label="Claude2" name="claude-web" class="web-pane">
           <WebChat2 ref="WebChatRef2" />
+        </el-tab-pane>
+        <el-tab-pane label="Bing" name="bing-web" class="web-pane">
+          <WebChat3 ref="WebChatRef3" />
         </el-tab-pane>
       </el-tabs>  
     </el-drawer>
