@@ -1,15 +1,33 @@
 <template>
-
    <webview
     ref="webviewRef"
     src="https://chat.openai.com/"
     style="width:100%; height:90%"
+    @dom-ready="onWebviewDomReady"
   ></webview>
 </template>
 
 <script setup>
 import { ref, defineExpose } from 'vue';
 const webviewRef = ref(null);
+
+const inputTextIntoWebview = (text) => {
+  const escapedText = JSON.stringify(text);
+  webviewRef.value.executeJavaScript(`
+  {
+  let textarea = document.getElementById('prompt-textarea');
+  if (textarea) {
+    textarea.innerText = ${escapedText};
+    }
+  }
+`)
+}
+
+
+const onWebviewDomReady = () => {
+  // inputTextIntoWebview();
+  // webviewRef.value.openDevTools();
+  }
 
 const refreshWebview = () => {
   if (webviewRef.value) {
@@ -18,7 +36,8 @@ const refreshWebview = () => {
 }
 // 暴露方法给父组件
 defineExpose({
-  refreshWebview
+  refreshWebview,
+  inputTextIntoWebview
 });
 
 

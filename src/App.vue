@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch, Hide } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -1082,7 +1082,20 @@ function addCodeCopy() {
 function handleWebDrawerOpen() {
   // 向主进程发送一个消失，告知WebDrawer打开了
   ipcRenderer.send('webDrawerOpen');
+
+  // 向webview发送一个消息，输入inputArea的内容
+  let inputText = inputRef.value?.textarea?.value;
+
+  if (inputText=="") {
+    console.log(QAcontext.value[QAcontext.value.length - 1][0])
+    inputText = QAcontext.value[QAcontext.value.length - 1][0]
+  }
+  if (inputText) {
+    WebChatRef1.value.inputTextIntoWebview(inputText);
+  }
+
 }
+
 
 function handleWebDrawerClose() {
   // 向主进程发送一个消失，告知WebDrawer关闭了
@@ -1272,7 +1285,7 @@ function zoomWin(){
         <el-button text :icon="Switch" circle @click="zoomWin"/>
       </el-tooltip>
       <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
-        <el-button text :icon="CaretBottom" circle @click="hideWin"/>
+        <el-button text :icon="Hide" circle @click="hideWin"/>
       </el-tooltip>
       <el-tooltip content="关闭WebChat" placement="top" :hide-after="hideAfter">
         <el-button text :icon="CloseBold" circle @click="close"/>
