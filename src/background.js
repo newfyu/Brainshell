@@ -565,8 +565,12 @@ ipcMain.on('clickMinimize', (event, arg) => {
     win.webContents.send('follow-mode', followMode);
     win.setBounds(winBoundSave)
   }
-  win.minimize();
+  if (arg!="only-restore"){
+    win.minimize();
+  }
+  
 })
+
 
 // 接收来自渲染进程的zoom消息，将窗口大小设置为屏幕大小的3/4，并且居中
 ipcMain.on('zoom', (event, arg) => {

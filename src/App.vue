@@ -120,6 +120,7 @@ const tagColor = { // 根据etag的类型设定标签颜色,单词只是区分�
   prompt: 'primary',
   snippet: 'primary',
   engine: 'success',
+  webchat:'success',
   agent: 'danger',
   model: 'info',
 }
@@ -499,6 +500,19 @@ const contactBrainoor = () => {
 
 }
 
+// 用于添加webchat标签
+function addWebChatTag(){
+  const tags = ["ChatGPT-Web","Claude-Web","Bing-Web"]
+  tags.forEach(tag => {
+    tagList.value.push({
+      name: tag,
+      type: 'webchat',
+      color: tagColor['webchat'],
+      abbr: textAbbr(tag) + 'webchat'
+    })
+  })
+}
+
 // 重试函数,用于contactBrainoor失败时重试
 const retry = () => {
   retryCount++;
@@ -579,11 +593,26 @@ function tag2str(question) {
 }
 
 
-// 选择etag列表中的条目 TODO
+// 选择etag列表中的条目
 function selectItem(item) {
   const textarea = inputRef.value.textarea
   const position = inputRef.value.textarea.selectionEnd
 
+  // 如果是webchat, 直接执行命令
+  if (item.type=="webchat"){
+    ipcRenderer.send("clickMinimize", "only-restore");
+    if (item.name === "ChatGPT-Web"){
+      webDrawer.value = true;
+      activeWebTab.value = "chatgpt-web"
+    }
+    const text = textarea.value;
+    const queryLength = tagQuery.length + 1;
+    textarea.value = text.substring(0, position - queryLength) + text.substring(position);
+    inputText.value = textarea.value;
+    textarea.selectionStart = position - queryLength;
+    textarea.selectionEnd = position - queryLength;
+    return;
+  }
   // 如果是snippet，直接插入item的name到textarea中，而不是插入到inputTags中
   if (item.type === 'snippet') {
     const text = textarea.value;
@@ -921,6 +950,7 @@ function removeEventListeners() {
 }
 
 onMounted(async () => {
+  addWebChatTag();
   updateTheme()
   window.testFn = function () {
     drawer.value = true;
@@ -967,6 +997,8 @@ onMounted(async () => {
   if (askHotkey) {
     ipcRenderer.send('setAskHotkey', askHotkey);
   }
+
+  
 
 })
 
@@ -1278,13 +1310,13 @@ function zoomWin(){
     <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false">
       <template #header="{ close, titleId, titleClass }">
       <h4 :id="titleId" :class="titleClass" class="drag-area">WebChat</h4>
-      <el-tooltip content="刷新" placement="top" :hide-after="hideAfter">
+      <el-tooltip content="重新载入" placement="top" :hide-after="hideAfter">
         <el-button text :icon="Refresh" circle @click="refreshChildWebview"/>
       </el-tooltip>
       <el-tooltip content="缩放窗口" placement="top" :hide-after="hideAfter">
         <el-button text :icon="Switch" circle @click="zoomWin"/>
       </el-tooltip>
-      <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
+      <el-tooltip content="全部隐藏" placement="top" :hide-after="hideAfter">
         <el-button text :icon="Hide" circle @click="hideWin"/>
       </el-tooltip>
       <el-tooltip content="关闭WebChat" placement="top" :hide-after="hideAfter">
