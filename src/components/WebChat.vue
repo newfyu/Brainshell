@@ -17,7 +17,7 @@ const inputTextIntoWebview = (text) => {
   {
   let textarea = document.getElementById('prompt-textarea');
   if (textarea) {
-    textarea.innerText = ${escapedText};
+    textarea.value = ${escapedText};
   }
   }
 `)
@@ -25,7 +25,6 @@ const inputTextIntoWebview = (text) => {
 
 
 const onWebviewDomReady = () => {
-  // inputTextIntoWebview();
   // webviewRef.value.openDevTools();
   }
 
