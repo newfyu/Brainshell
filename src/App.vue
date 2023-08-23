@@ -605,6 +605,10 @@ function selectItem(item) {
       webDrawer.value = true;
       activeWebTab.value = "chatgpt-web"
     }
+    if (item.name === "Claude-Web"){
+      webDrawer.value = true;
+      activeWebTab.value = "claude-web"
+    }
     const text = textarea.value;
     const queryLength = tagQuery.length + 1;
     textarea.value = text.substring(0, position - queryLength) + text.substring(position);
@@ -1124,6 +1128,7 @@ function handleWebDrawerOpen() {
   }
   if (inputText) {
     WebChatRef1.value.inputTextIntoWebview(inputText);
+    WebChatRef2.value.inputTextIntoWebview(inputText);
   }
 
 }
