@@ -34,6 +34,7 @@ let winBoundSave = null
 let followMode = false
 let blurTimeStart = null
 let isOpenExternal = true
+let streaming = false;
 
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -114,8 +115,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
   // 监听窗口失去焦点的事件
   win.on('blur', () => {
     // 启动计时器，在一段时间后隐藏窗口
-
-    if (followMode) {
+    if (followMode && !streaming) {
       if (isMac) {
         const elapsedTime = Date.now() - blurTimeStart;
         if (elapsedTime > 1000) {
@@ -596,5 +596,9 @@ ipcMain.on('zoomRestore', (event, arg) => {
   win.setBounds(winBoundSave);
 })
 
+// 接收来自渲染进程的streming，用于判断是否在follow模式下隐藏窗口
+ipcMain.on('streaming', (event, value) => {
+  streaming = value;
+});
 
 app.setName('OpenCopilot')

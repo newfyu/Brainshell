@@ -181,6 +181,11 @@ watch(theme, async (newVal) => {
 })
 provide('theme', theme)
 
+// watch streaming值的改变，改变后发送到主进程
+watch(streaming, (newVal) => {
+  ipcRenderer.send("streaming", newVal);
+})
+
 
 currentWindow.on('resize', () => {
   adjustHeight();
