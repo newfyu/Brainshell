@@ -36,7 +36,7 @@ let blurTimeStart = null
 let isOpenExternal = true
 let streaming = false;
 
-async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 1000, frame = true, shadow = true, top = false) {
+async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 800, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
     x: x,
@@ -77,7 +77,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     // Load the index.html when not in development
     win.loadURL('app://./index.html')
 
-  } ``
+  } 
   shiftMode = false
 
   win.on('close', (event) => {
@@ -131,7 +131,7 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
       }
     }
 
-    if (autoHide) {
+    if (autoHide && isLock) {
       hideTimer = setTimeout(() => {
         if (isMac) {
           win.hide()
@@ -209,6 +209,8 @@ app.on('ready', async () => {
   const contextMenu = Menu.buildFromTemplate([
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
+    { label: '复位', click: () => win.setBounds({ x: 1000, y: 200, width: 400, height: 800 }) },
+    { label: '重启', click: () => reloadWindow() },
     {
       label: '退出', click: () => {
         isQuiting = true;
@@ -237,7 +239,6 @@ app.on('ready', async () => {
       const zoomOutMenuItem = viewMenu.items.find(item => item.label === 'Zoom Out');
       zoomOutMenuItem.enabled = false;
     }
-
   }
 
   // 全局Chat快捷键
@@ -339,6 +340,33 @@ app.on('will-quit', () => {
 
   app.removeAllListeners('some-event');
 });
+
+
+
+// 只是reload，不切换窗口模式
+function reloadWindow() {
+  if (isLock) { //执行锁定
+    const bounds = win.getBounds();
+    shiftMode = true
+    win.close()
+    createWindow(true, bounds.x, bounds.y, bounds.width, bounds.height, false, false, true)
+    win.setResizable(false)
+    win.once('ready-to-show', () => {
+      win.show()
+    })
+  } else {
+    const bounds = win.getBounds();
+    shiftMode = true
+    win.close()
+    createWindow(false, bounds.x, bounds.y, bounds.width, bounds.height, true, true, false)
+    win.setResizable(true)
+    win.once('ready-to-show', () => {
+      win.show()
+    })
+  }
+}
+
+
 
 
 // 无框模式切换

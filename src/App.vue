@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch, Hide } from '@element-plus/icons-vue'
+import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, More, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch, Hide } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -144,6 +144,7 @@ const hoverNewPage = ref(false)
 const historyLoading = ref(false)
 const WebChatRef1 = ref(null)
 const WebChatRef2 = ref(null)
+const WebChatRef3 = ref(null)
 let zoomed = false
 
 // 从localstorage中读取keepTag的值, 默认true,用于是否在提交后是否删除标签
@@ -1114,7 +1115,8 @@ function addCodeCopy() {
       const textToCopy = this.getAttribute("data-clipboard-text");
       // 将文本复制到剪贴板
       if (textToCopy) {
-        clipboard.writeText(textToCopy)
+        clipboard.writeText(textToCopy);
+        ElMessage.success("复制成功");
       }
     });
   });
@@ -1147,6 +1149,12 @@ function handleWebDrawerClose() {
 function refreshChildWebview() {
   WebChatRef1.value.refreshWebview();
   WebChatRef2.value.refreshWebview();
+  WebChatRef3.value.refreshWebview();
+
+  ElMessage({
+      message: '正在重新载入，请稍候',
+      type: 'success',
+    })
 }
 
 function zoomWin(){
@@ -1272,7 +1280,7 @@ function zoomWin(){
               </el-tooltip>
 
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
-                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming && !followMode && !hoverNewPage" :disabled="streaming"
+                <el-button :icon="More" text circle type="info" v-show="connected && !streaming && !followMode && !hoverNewPage" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>
 
@@ -1317,7 +1325,7 @@ function zoomWin(){
         </el-tab-pane>
       </el-tabs>
     </el-drawer>
-    <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false">
+    <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false" id="web-drawer">
       <template #header="{ close, titleId, titleClass }">
       <h4 :id="titleId" :class="titleClass" class="drag-area">WebChat</h4>
       <el-tooltip content="重新载入" placement="top" :hide-after="hideAfter">

@@ -27,6 +27,13 @@
         <el-input-number v-model="maxContext" :step="step" />
       </el-tooltip>
     </el-form-item>
+
+    <el-form-item label="速率限制: ">
+      <el-tooltip content="调整速率以减少触发OpenAI的Rate-limit, 免费用户最好设置为20，单位为秒" placement="top" :hide-after="hideAfter">
+        <el-input-number v-model="rateLimit" :step="1" />
+      </el-tooltip>
+    </el-form-item>
+
     <el-form-item>
     <el-button type="primary" @click="onSubmit">保存</el-button>
     </el-form-item>
@@ -102,6 +109,7 @@ let inputLimit = ref(2000)
 let maxContext = ref(2000)
 let saveEdit = ref(false)
 let hideAfter = ref(0)
+let rateLimit = ref(20)
 let step = ref(500)
 let autoHide = ref(false)
 const askHotKey = ref('');
@@ -132,6 +140,11 @@ watch(themeValue, (newVal) => {
 
 const onSubmit = () => {
   saveConfig()
+  ElMessage({
+      message: '保存成功',
+      type: 'success',
+    })
+
 }
 
 const loadConfig = () => {
@@ -139,6 +152,7 @@ const loadConfig = () => {
     data: []
   }).then((response) => {
     apikey.value = response['data']['data'][0]
+    rateLimit.value = response['data']['data'][1]
     proxy.value = response['data']['data'][5]
     inputLimit.value = response['data']['data'][6]
     maxContext.value = response['data']['data'][7]
@@ -151,7 +165,7 @@ const loadConfig = () => {
 
 const saveConfig = () => {
   axios.post('http://127.0.0.1:7860/run/save_config_from_brainshell', {
-    data: [apikey.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value, apiBase.value]
+    data: [apikey.value, rateLimit.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value, apiBase.value]
   }).then(() => {
   }).catch(error => {
     console.error(error);

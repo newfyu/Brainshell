@@ -354,3 +354,7 @@ ul {
 .el-drawer__header{
     margin-bottom: 0px;
 }
+
+#web-drawer > .el-drawer__body{
+    overflow: hidden;
+}
