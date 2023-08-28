@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, Lock, ArrowLeft, ArrowRight, DocumentAdd, More, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Switch, Hide } from '@element-plus/icons-vue'
+import { Delete, ArrowLeft, ArrowRight, DocumentAdd, More, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Hide, Lock, Unlock, Switch } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -1227,27 +1227,32 @@ function zoomWin(){
           </ul>
         </div>
       </Transition>
-      <el-select-v2 v-model="query" filterable class="historyList" :options="queryResult" placeholder="查询对话历史"
-        style="width: 240px" v-if="showHistory" remote :remote-method="remoteMethod" placement='top'
-        :loading="historyLoading" :effect='themeHTML' ref="historyRef" @change="selectHistoryItem" />
-
       <div class="tagBox" ref="tagBoxRef">
         <el-tag v-for="tag in inputTags" :key="tag" class="etag" closable round size="small" :type="tag.color"
           effect="dark" :disable-transitions="true" @close="handleTagClose(tag)">
           {{ tag.name }}
         </el-tag>
       </div>
-      <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
-        <el-button size="small" text class="hide-button" :icon="CaretBottom" type="info" @click="hideWin"/>
-      </el-tooltip>
+      
+      
       <div id="inputArea" class="inputAreaContainer" :class="{ 'InputFocus': isInputFocus }" @mouseover="inputAreaFocus"
         @mouseleave="inputAreaBlur">
         <!-- 如果要shift+enter提交，设置@keydown.shift.enter.prevent -->
         <el-row>
+          
           <el-input id="textArea" v-model="inputText" @input="handleInput" type="textarea" ref="inputRef"
             :placeholder="placeholderText" resize="none" @focus="textAreaFocus" @blur="textAreaBlur" @mouseover="hoverNewPage = false"
             :autosize="{ minRows: 1, maxRows: 8 }" :disabled="streaming" @keydown="onKeyDown" autofocus>
           </el-input>
+          
+          <el-select-v2 v-model="query" filterable class="historyList" :options="queryResult" placeholder="查询对话历史"
+            style="width: 240px" v-if="showHistory" remote :remote-method="remoteMethod" placement='top'
+            :loading="historyLoading" :effect='themeHTML' ref="historyRef" @change="selectHistoryItem" />
+
+          <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
+            <el-button size="small" text class="hide-button" :icon="CaretBottom" type="info" @click="hideWin"/>
+          </el-tooltip>
+        
         </el-row>
         <el-row class="toolbar">
           <el-button type="info" plain size="small" v-show="streaming" class="stop-button" @click="stopRequest">
@@ -1272,9 +1277,9 @@ function zoomWin(){
                   </Transition>
                 </template>
               </el-popconfirm>
-              <el-tooltip content="无框" placement="top" :hide-after="hideAfter">
+              <el-tooltip content="无框模式" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
-                  <el-button :icon="Lock" text circle @click="lock" type="info" :disabled="streaming"
+                  <el-button :icon="isLock? Unlock : Lock" text circle @click="lock" type="info" :disabled="streaming"
                     v-show="!streaming && connected && !followMode && !hoverNewPage" />
                 </Transition>
               </el-tooltip>

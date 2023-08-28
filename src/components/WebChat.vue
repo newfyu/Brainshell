@@ -18,7 +18,19 @@ const inputTextIntoWebview = (text) => {
   let textarea = document.getElementById('prompt-textarea');
   if (textarea) {
     textarea.value = ${escapedText};
-  }
+  };
+  // 创建并触发一个 'input' 事件
+  const event = new Event('input', {
+    'bubbles': true,
+    'cancelable': true
+  });
+  textarea.dispatchEvent(event);
+  // 创建并触发一个 'change' 事件（如果需要）
+  const changeEvent = new Event('change', {
+    'bubbles': true,
+    'cancelable': true
+  });
+  textarea.dispatchEvent(changeEvent);
   }
 `)
 }
