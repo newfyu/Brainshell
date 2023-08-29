@@ -6,8 +6,10 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
+import  { autoUpdater } from 'electron-updater';
 
-const { spawn, execSync, exec } = require('child_process');
+
+const { spawn } = require('child_process');
 
 // import installExtension, { VUEJS3_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -36,6 +38,81 @@ let blurTimeStart = null
 let isOpenExternal = true
 let streaming = false;
 
+
+
+// 启动时清除mac已有安装包
+if (isMac){
+  const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
+  fs.readdir(fileDir, (err, files) => {
+    if (err) throw err;
+    for (const file of files) {
+      fs.unlink(path.join(fileDir, file), err => {
+        if (err) throw err;
+      });
+    }
+  });
+}
+
+
+autoUpdater.setFeedURL({
+  provider: "generic", 
+  url: "http://lhano.cn:8732/"
+});
+
+autoUpdater.autoDownload = false
+
+// autoUpdater.on('error', (error) => {
+//   dialog.showErrorBox('Update Error', `Message: ${error}`);
+// });
+
+
+autoUpdater.on("update-available", function (info) {
+  dialog.showMessageBox({
+    message: `Update available. Version ${info.version} is available.`,
+    buttons: ["Download", "Cancel"]
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.downloadUpdate();
+    }
+  });
+});
+
+autoUpdater.on("update-not-available", function (info) {
+  dialog.showMessageBox({
+    message: `Update not available. Version ${info.version} is already the latest version.`,
+    buttons: ["OK"]
+});
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  const percentage = progressObj.percent / 100;
+  win.setProgressBar(percentage);
+});
+
+
+autoUpdater.on("update-downloaded", function (info) {
+  win.setProgressBar(-1);
+  dialog.showMessageBox({
+    message: `Update downloaded. Version ${info.version} is downloaded.`,
+    buttons: ["Install", "Cancel"]
+  }).then((result) => {
+    if (result.response === 0) {
+      if (isMac){
+        // mac安装包由于没有签名，无法直接安装，只有把dmg伪造成zip，下载后改回dmg，然后运行安装
+        const filePath = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending',`OpenCopilot-${info.version}-mac.zip`);
+        if (fs.existsSync(filePath)) {
+          const newFilePath = filePath.replace('.zip', '.dmg');
+          fs.renameSync(filePath, newFilePath);
+          shell.openPath(newFilePath);
+          app.quit();
+        }
+      }else{
+        autoUpdater.quitAndInstall()
+      }
+    }
+  });
+});
+
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 800, frame = true, shadow = true, top = false) {
   // Create the browser window.
   win = new BrowserWindow({
@@ -52,7 +129,6 @@ async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h 
     skipTaskbar: false,
     minWidth: 400,
     minHeight: 400,
-    // level: 'floating',
     webPreferences: {
 
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -210,6 +286,9 @@ app.on('ready', async () => {
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
     { label: '复位', click: () => win.setBounds({ x: 1000, y: 200, width: 400, height: 800 }) },
+    { type: 'separator' },
+    { label: '检查更新', click: () => autoUpdater.checkForUpdatesAndNotify()},
+    { type: 'separator' },
     { label: '重启', click: () => reloadWindow() },
     {
       label: '退出', click: () => {
@@ -334,10 +413,12 @@ app.on('before-quit', () => {
   }
   globalShortcut.unregisterAll();
   app.removeAllListeners('some-event');
+
+  
+
 })
 
 app.on('will-quit', () => {
-
   app.removeAllListeners('some-event');
 });
 

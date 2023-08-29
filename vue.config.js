@@ -19,6 +19,13 @@ module.exports = {
             }
           ]
         },
+        "publish": [
+          {
+            "provider": "github",
+            "repo": "https://github.com/newfyu/OpenCopilot",
+            "owner": "lhan"
+          }
+        ],
         extraResources: [
           {
             from: "/Users/lhan/Projects/BrainDoor/dist/braindoor",
