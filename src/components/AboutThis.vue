@@ -1,7 +1,7 @@
 <template>
   <img alt="DeskBrain logo" src="../assets/logo.png" class="center">
   <el-row justify="center"><el-text>
-      <h1>OpenCopilot</h1>
+      <h1>Tianshu</h1>
     </el-text></el-row>
   <el-row justify="center"><el-text size="large">Version 0.6.1</el-text></el-row>
   <!-- <el-row justify="center"><el-text><h3>帮助文档</h3></el-text></el-row> -->

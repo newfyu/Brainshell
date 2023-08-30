@@ -9,7 +9,7 @@ module.exports = {
       externals: ['electron-store'],
       builderOptions: {
         "asar": false,
-        "appId": "com.brainshell.app",
+        "appId": "com.tianshu.app",
         "win": {
           "icon": "public/icon256.png",
           extraResources: [

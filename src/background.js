@@ -37,12 +37,14 @@ let followMode = false
 let blurTimeStart = null
 let isOpenExternal = true
 let streaming = false;
+let manual_check = false;
 
 
 
 // 启动时清除mac已有安装包
 if (isMac){
-  const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
+  try {
+    const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
   fs.readdir(fileDir, (err, files) => {
     if (err) throw err;
     for (const file of files) {
@@ -51,6 +53,9 @@ if (isMac){
       });
     }
   });
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 
@@ -67,9 +72,10 @@ autoUpdater.autoDownload = false
 
 
 autoUpdater.on("update-available", function (info) {
+  
   dialog.showMessageBox({
-    message: `Update available. Version ${info.version} is available.`,
-    buttons: ["Download", "Cancel"]
+    message: `发现新的版本，是否下载 ${info.version}。`,
+    buttons: ["下载", "取消"]
   }).then((result) => {
     if (result.response === 0) {
       autoUpdater.downloadUpdate();
@@ -78,10 +84,12 @@ autoUpdater.on("update-available", function (info) {
 });
 
 autoUpdater.on("update-not-available", function (info) {
+  if (manual_check) {
   dialog.showMessageBox({
-    message: `Update not available. Version ${info.version} is already the latest version.`,
+    message: `没有发现新版本`,
     buttons: ["OK"]
 });
+  }
 });
 
 autoUpdater.on("download-progress", (progressObj) => {
@@ -93,8 +101,8 @@ autoUpdater.on("download-progress", (progressObj) => {
 autoUpdater.on("update-downloaded", function (info) {
   win.setProgressBar(-1);
   dialog.showMessageBox({
-    message: `Update downloaded. Version ${info.version} is downloaded.`,
-    buttons: ["Install", "Cancel"]
+    message: `新版本${info.version}下载完毕，是否安装。`,
+    buttons: ["安装", "取消"]
   }).then((result) => {
     if (result.response === 0) {
       if (isMac){
@@ -112,6 +120,8 @@ autoUpdater.on("update-downloaded", function (info) {
     }
   });
 });
+
+autoUpdater.checkForUpdatesAndNotify()
 
 async function createWindow(transparent = isLock, x = 1000, y = 200, w = 500, h = 800, frame = true, shadow = true, top = false) {
   // Create the browser window.
@@ -269,9 +279,8 @@ app.on('ready', async () => {
   // 设置托盘
   tray = new Tray(path.join(__static, 'tray.png'))
   tray.on('click', () => {
-    if (!win.isVisible()) {
       win.show() // 显示窗口
-    }
+
     setTimeout(() => {
       win.focus()
     }, 200)
@@ -287,7 +296,10 @@ app.on('ready', async () => {
     { label: '隐藏', click: () => win.hide() },
     { label: '复位', click: () => win.setBounds({ x: 1000, y: 200, width: 400, height: 800 }) },
     { type: 'separator' },
-    { label: '检查更新', click: () => autoUpdater.checkForUpdatesAndNotify()},
+    { label: '检查更新', click: () => {
+      manual_check = true;
+      autoUpdater.checkForUpdatesAndNotify()}
+    },
     { type: 'separator' },
     { label: '重启', click: () => reloadWindow() },
     {
@@ -446,8 +458,6 @@ function reloadWindow() {
     })
   }
 }
-
-
 
 
 // 无框模式切换
