@@ -41,23 +41,13 @@ let manual_check = false;
 
 
 
-// 启动时清除mac已有安装包
+// 启动时删除mac已有安装包
 if (isMac){
-  try {
-    const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
-  fs.readdir(fileDir, (err, files) => {
-    if (err) throw err;
-    for (const file of files) {
-      fs.unlink(path.join(fileDir, file), err => {
-        if (err) throw err;
-      });
-    }
-  });
-  } catch (error) {
-    console.log(error)
+  const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
+  if (fs.existsSync(fileDir)) {
+    fs.rmdirSync(fileDir, { recursive: true });
   }
 }
-
 
 autoUpdater.setFeedURL({
   provider: "generic", 
@@ -687,8 +677,15 @@ ipcMain.on('clickMinimize', (event, arg) => {
   if (arg!="only-restore"){
     win.minimize();
   }
-  
 })
+
+// follom-mode下提交后，取消follow-mode,然后窗口设置为winBoundSave
+ipcMain.on('follow-mode-submit', (event, arg) => {
+  followMode = false
+  win.webContents.send('follow-mode', followMode);
+  win.setBounds(winBoundSave)
+}
+)
 
 
 // 接收来自渲染进程的zoom消息，将窗口大小设置为屏幕大小的3/4，并且居中

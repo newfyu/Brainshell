@@ -197,6 +197,9 @@ const sendRequests = (startIndex = 9999) => {
   // 发送总请求
   let question = inputText.value
   if (question) {
+    if (followMode.value) {
+      followModeSubmit()
+    }
     streaming.value = true
     cancelToken = axios.CancelToken.source()
     const tagStr = tag2str(question)
@@ -1040,8 +1043,13 @@ function hideWin() {
     // 给主进程发一个最小化的消息
     ipcRenderer.send('clickMinimize');
   }
-  
 }
+
+function followModeSubmit() {
+  ipcRenderer.send('follow-mode-submit');
+}
+
+
 
 // 取消编辑模式
 function cancelEditable(index) {
