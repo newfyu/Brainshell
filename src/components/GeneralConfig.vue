@@ -165,7 +165,7 @@ const loadConfig = () => {
 
 const saveConfig = () => {
   axios.post('http://127.0.0.1:7860/run/save_config_from_brainshell', {
-    data: [apikey.value, rateLimit.value, proxy.value, inputLimit.value, maxContext.value, saveEdit.value, apiBase.value]
+    data: [apikey.value.trim(), rateLimit.value, proxy.value.trim(), inputLimit.value, maxContext.value, saveEdit.value, apiBase.value.trim()]
   }).then(() => {
   }).catch(error => {
     console.error(error);

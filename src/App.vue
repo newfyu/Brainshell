@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
-import { Delete, ArrowLeft, ArrowRight, DocumentAdd, More, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Hide, Lock, Unlock, Switch } from '@element-plus/icons-vue'
+import { Delete, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Lock, Unlock, FullScreen } from '@element-plus/icons-vue'
 import { ipcRenderer, clipboard } from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
@@ -140,7 +140,7 @@ let historyRef = ref(null)
 let queryResult = ref([]) // 历史记录查结果
 let query = ref(null) // 历史记录查询词
 let followMode = ref(false)
-const hoverNewPage = ref(false)
+// const hoverNewPage = ref(false)
 const historyLoading = ref(false)
 const WebChatRef1 = ref(null)
 const WebChatRef2 = ref(null)
@@ -242,7 +242,12 @@ const sendRequests = (startIndex = 9999) => {
     inputText.value = "";
     adjustHeight();
     if (!keepTag.value) {
-      inputTags.value = []
+      // 如果#python没有在inputTags中，则清空inputTags，临时解决方案，使用#python的时候不退出标签
+      if (inputTags.value.length > 0) {
+        if (inputTags.value.every(tag => tag.name !== 'python' && tag.name !== 'vbscript' && tag.name !== 'applescript')) {
+          inputTags.value = []
+        }
+      }
     }
 
 
@@ -639,6 +644,8 @@ function selectItem(item) {
     textarea.selectionEnd = position - queryLength + content.length;
     tagQuery = "";
     adjustHeight();
+    showList.value = false;
+    textarea.focus();
     return;
   }
 
@@ -1177,6 +1184,14 @@ function zoomWin(){
   }
 }
 
+function closeWebDrawer() {
+  if (zoomed){
+    ipcRenderer.send('zoomRestore');
+    zoomed = false;
+  }
+  webDrawer.value = false;
+}
+
 </script>
 
 ////////////////////////////////////////////
@@ -1260,6 +1275,10 @@ function zoomWin(){
           <el-tooltip content="隐藏" placement="top" :hide-after="hideAfter">
             <el-button size="small" text class="hide-button" :icon="CaretBottom" type="info" @click="hideWin"/>
           </el-tooltip>
+          <el-tooltip :content="isLock? '窗口模式' : '无框模式'" placement="top" :hide-after="hideAfter">
+            <el-button :icon="isLock? Lock : Unlock" text size="small" @click="lock" type="info" :disabled="streaming"
+                    v-show="!streaming && connected && !followMode && !hoverNewPage" class="lock-button"/>
+          </el-tooltip>
         
         </el-row>
         <el-row class="toolbar">
@@ -1272,35 +1291,43 @@ function zoomWin(){
             <div style="width: 160px;" @mouseover="toolbarOnHover" @mouseleave="toolbarOnLeave">
               <el-tooltip content="新建对话 cmd/ctrl+t" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
-                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming" @mouseover="hoverNewPage = true"
+                  <el-button :icon="DocumentAdd" text circle @click="newPage" type="info" :disabled="streaming"
                     v-show="!streaming && connected && !followMode" />
                 </Transition>
               </el-tooltip>
+
+              
               <el-popconfirm title="确定删除当前对话?" :hide-after="0" confirm-button-type="danger" position="top"
                 @confirm="delPage" placement="top">
                 <template #reference>
+                  <el-tooltip content="删除对话" placement="top" :hide-after="hideAfter">
                   <Transition name="fade">
                     <el-button :icon="Delete" text circle type="info" :disabled="streaming"
-                      v-show="!streaming && connected && !followMode && !hoverNewPage"  />
+                      v-show="!streaming && connected && !followMode"  />
                   </Transition>
+                </el-tooltip>
                 </template>
               </el-popconfirm>
-              <el-tooltip content="无框模式" placement="top" :hide-after="hideAfter">
+              
+
+
+              <!-- <el-tooltip content="无框模式" placement="top" :hide-after="hideAfter">
                 <Transition name="fade">
                   <el-button :icon="isLock? Unlock : Lock" text circle @click="lock" type="info" :disabled="streaming"
                     v-show="!streaming && connected && !followMode && !hoverNewPage" />
                 </Transition>
+              </el-tooltip> -->
+              <el-tooltip content="WebChat" placement="top" :hide-after="hideAfter">
+                <el-button :icon="ChromeFilled" text circle type="info" v-show="connected && !streaming && !followMode" :disabled="streaming"
+                  @click="webDrawer = true" />
               </el-tooltip>
 
               <el-tooltip content="设置" placement="top" :hide-after="hideAfter">
-                <el-button :icon="More" text circle type="info" v-show="connected && !streaming && !followMode && !hoverNewPage" :disabled="streaming"
+                <el-button :icon="Setting" text circle type="info" v-show="connected && !streaming && !followMode" :disabled="streaming"
                   @click="drawer = true" />
               </el-tooltip>
 
-              <el-tooltip content="WebChat" placement="top" :hide-after="hideAfter">
-                <el-button :icon="ChromeFilled" text circle type="info" v-show="connected && !streaming && !followMode && hoverNewPage" :disabled="streaming"
-                  @click="webDrawer = true" />
-              </el-tooltip>
+              
             </div>
 
             <el-tooltip content="可拖动区域" placement="top" :hide-after="hideAfter">
@@ -1339,19 +1366,19 @@ function zoomWin(){
       </el-tabs>
     </el-drawer>
     <el-drawer v-model="webDrawer" title="WebChat" :with-header="true" direction="btt" size="100%" @open="handleWebDrawerOpen" @close="handleWebDrawerClose" :show-close="false" id="web-drawer">
-      <template #header="{ close, titleId, titleClass }">
+      <template #header="{ titleId, titleClass }">
       <h4 :id="titleId" :class="titleClass" class="drag-area">WebChat</h4>
       <el-tooltip content="重新载入" placement="top" :hide-after="hideAfter">
         <el-button text :icon="Refresh" circle @click="refreshChildWebview"/>
       </el-tooltip>
       <el-tooltip content="缩放窗口" placement="top" :hide-after="hideAfter">
-        <el-button text :icon="Switch" circle @click="zoomWin"/>
+        <el-button text :icon="FullScreen" circle @click="zoomWin"/>
       </el-tooltip>
-      <el-tooltip content="全部隐藏" placement="top" :hide-after="hideAfter">
+      <!-- <el-tooltip content="全部隐藏" placement="top" :hide-after="hideAfter">
         <el-button text :icon="Hide" circle @click="hideWin"/>
-      </el-tooltip>
+      </el-tooltip> -->
       <el-tooltip content="关闭WebChat" placement="top" :hide-after="hideAfter">
-        <el-button text :icon="CloseBold" circle @click="close"/>
+        <el-button text :icon="CloseBold" circle @click="closeWebDrawer"/>
       </el-tooltip>
       
     </template>
