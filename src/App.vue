@@ -993,9 +993,9 @@ onMounted(async () => {
     clearTimeout(transparentTimeout);
 
     newPage();
-    inputText.value = text + '\n\n';
+    // inputText.value = text + '\n\n';
+    inputText.value = text;
     // 把app置于前台并激活
-
     nextTick(() => {
       inputRef.value.focus();
       inputRef.value.textarea.scrollTop = inputRef.value.textarea.scrollHeight;

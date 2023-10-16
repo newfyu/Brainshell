@@ -29,7 +29,7 @@ let isQuiting = false;
 let shiftMode = false;
 let braindoorProcess = null;
 let hideTimer
-let autoHide = false;
+let autoHide = true;
 let clipboardSave = null
 let otherBraindoor = false
 let winBoundSave = null
