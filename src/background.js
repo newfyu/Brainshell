@@ -43,7 +43,7 @@ let manual_check = false;
 
 // 启动时删除mac已有安装包
 if (isMac){
-  const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending')
+  const fileDir = path.join(app.getPath('home'), 'Library', 'Caches', 'tianshu-updater','pending')
   if (fs.existsSync(fileDir)) {
     fs.rmdirSync(fileDir, { recursive: true });
   }
@@ -97,7 +97,7 @@ autoUpdater.on("update-downloaded", function (info) {
     if (result.response === 0) {
       if (isMac){
         // mac安装包由于没有签名，无法直接安装，只有把dmg伪造成zip，下载后改回dmg，然后运行安装
-        const filePath = path.join(app.getPath('home'), 'Library', 'Caches', 'opencopilot-updater','pending',`OpenCopilot-${info.version}-mac.zip`);
+        const filePath = path.join(app.getPath('home'), 'Library', 'Caches', 'tianshu-updater','pending',`Tianshu-${info.version}-mac.zip`);
         if (fs.existsSync(filePath)) {
           const newFilePath = filePath.replace('.zip', '.dmg');
           fs.renameSync(filePath, newFilePath);
@@ -717,4 +717,4 @@ ipcMain.on('streaming', (event, value) => {
   streaming = value;
 });
 
-app.setName('OpenCopilot')
+app.setName('Tianshu')
