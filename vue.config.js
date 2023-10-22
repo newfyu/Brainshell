@@ -22,7 +22,7 @@ module.exports = {
         "publish": [
           {
             "provider": "github",
-            "repo": "https://github.com/newfyu/OpenCopilot",
+            "repo": "https://github.com/newfyu/Tianshu",
             "owner": "lhan"
           }
         ],

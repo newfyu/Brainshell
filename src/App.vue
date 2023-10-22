@@ -1300,12 +1300,12 @@ function closeWebDrawer() {
               <el-popconfirm title="确定删除当前对话?" :hide-after="0" confirm-button-type="danger" position="top"
                 @confirm="delPage" placement="top">
                 <template #reference>
-                  <el-tooltip content="删除对话" placement="top" :hide-after="hideAfter">
+                  
                   <Transition name="fade">
                     <el-button :icon="Delete" text circle type="info" :disabled="streaming"
                       v-show="!streaming && connected && !followMode"  />
                   </Transition>
-                </el-tooltip>
+                
                 </template>
               </el-popconfirm>
               

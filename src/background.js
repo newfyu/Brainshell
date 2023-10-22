@@ -563,17 +563,26 @@ const startBraindoor = async () => {
     console.log('Braindoor is already running.');
     return;
   }
-  // 如果系统进程中有其他braindoor,也退出
   let resoursePath = path.join(__dirname, '..');
   let braindoorPath = null;
   let workPath = path.join(resoursePath, 'braindoor');
   if (process.env.NODE_ENV === 'development') {
     braindoorPath = '/Users/lhan/Projects/BrainDoor/dist/braindoor/braindoor'
-    braindoorProcess = spawn(braindoorPath, { shell: false });
+    braindoorProcess = spawn(braindoorPath, { shell: false, env: process.env });
   } else {
     braindoorPath = path.join(resoursePath, 'braindoor/braindoor');
-    braindoorProcess = spawn(braindoorPath, { shell: false, cwd: workPath });
+    braindoorProcess = spawn(braindoorPath, { shell: false, cwd: workPath, env: process.env });
   }
+  braindoorProcess.on('error', (error) => {
+    console.log(`Error: ${error.message}`);
+  });
+  braindoorProcess.stdout.on('data', (data) => {
+    console.log(`Output: ${data}`);
+  });
+  braindoorProcess.stderr.on('data', (data) => {
+    console.log(`Error Output: ${data}`);
+  });
+  console.log('Run braindoor.');
   console.log('Run braindoor.');
 };
 

@@ -111,7 +111,7 @@ let saveEdit = ref(false)
 let hideAfter = ref(0)
 let rateLimit = ref(20)
 let step = ref(500)
-let autoHide = ref(false)
+let autoHide = ref(true)
 const askHotKey = ref('');
 const isMac = process.platform === 'darwin' ? true : false
 
