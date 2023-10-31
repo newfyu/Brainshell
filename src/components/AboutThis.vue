@@ -15,7 +15,7 @@
       <h3>Github</h3>
     </el-text></el-row>
   <el-row justify="center"><el-text>OpenCopilot:&nbsp;<a
-        href="https://github.com/newfyu/OpenCopilot">github.com/newfyu/OpenCopilot</a></el-text></el-row>
+        href="https://github.com/newfyu/Tianshu">github.com/newfyu/Tianshu</a></el-text></el-row>
   <el-row justify="center"><el-text>Braindoor:&nbsp;<a
         href="https://github.com/newfyu/Braindoor">github.com/newfyu/Braindoor</a></el-text></el-row>
   <el-row justify="center"><el-text>Brainshell:&nbsp;<a

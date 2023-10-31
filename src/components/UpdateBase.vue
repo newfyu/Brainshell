@@ -14,6 +14,7 @@
     <el-button v-if="!running" @click="updateBase" type="primary">更新</el-button>
     <el-button v-if="!running" @click="showEdit = true">编辑</el-button>
     <el-button type="warning" v-if="running" @click="restartBraindoor">中止</el-button>
+    <el-button @click="openLogFile" v-if="running">日志</el-button>
   </el-row>
 
   <el-form label-position="right" label-width="100px" v-if="showEdit">
@@ -89,6 +90,9 @@ import { FolderAdd, Remove } from '@element-plus/icons-vue'
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import { ipcRenderer } from "electron"
+import os from 'os';
+import path from 'path';
+const { shell } = require('@electron/remote');
 let baseName = ref('')
 let dirPath = ref([])
 let dirData = ref([])
@@ -132,6 +136,11 @@ const getBaseInfo = () => {
   }).catch(error => {
     console.error(error);
   });
+}
+
+const openLogFile = () => {
+  const logFilePath = path.join(os.homedir(), 'braindoor', 'run.log');
+  shell.openPath(logFilePath);
 }
 
 
