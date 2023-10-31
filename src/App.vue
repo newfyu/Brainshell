@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { ref, onMounted, reactive, toRefs, provide, watch, nextTick, onUnmounted } from 'vue';
 import { Delete, ArrowLeft, ArrowRight, DocumentAdd, Setting, Edit, CopyDocument, Check, CaretBottom, ChromeFilled, Refresh, CloseBold, Close, Lock, Unlock, FullScreen } from '@element-plus/icons-vue'
-import { ipcRenderer, clipboard } from "electron"
+import { ipcRenderer} from "electron"
 const { getCurrentWindow } = require('@electron/remote');
 import Markdown from 'markdown-it';
 import hljs from 'highlight.js';
@@ -66,6 +66,7 @@ const md2html = () => {
 }
 
 let QAcontext = ref([]); // 所有的问答对历史
+let QAcontextCopy = []; // 原始markdown拷贝
 let scrollbarRef = ref(null); // 滚动条的ref，控制滚动
 let inputText = ref('')  // 主输入框的内容
 let tagBoxRef = ref(null)  // 标签框的ref，用于控制高度
@@ -215,6 +216,7 @@ const sendRequests = (startIndex = 9999) => {
       inputRef.value.focus()
       setTimeout(() => {
         QAcontext.value = response['data']['data'][0]
+        QAcontextCopy= JSON.parse(JSON.stringify(QAcontext.value))
         pageInfo.value = response['data']['data'][5]
         placeholderText.value = placeholder
         md2html()
@@ -293,6 +295,7 @@ const nextPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    QAcontextCopy= JSON.parse(JSON.stringify(QAcontext.value))
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
 
@@ -318,6 +321,7 @@ const prevPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    QAcontextCopy= JSON.parse(JSON.stringify(QAcontext.value))
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
     if (reviewMode) {
@@ -340,6 +344,7 @@ const jumpPage = (pageName) => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][5]
     QAcontext.value = response['data']['data'][0]
+    QAcontextCopy= JSON.parse(JSON.stringify(QAcontext.value))
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
     if (reviewMode) {
@@ -365,6 +370,7 @@ const delPage = () => {
   }).then((response) => {
     pageInfo.value = response['data']['data'][6]
     QAcontext.value = response['data']['data'][0]
+    QAcontextCopy= JSON.parse(JSON.stringify(QAcontext.value))
     reviewMode = response['data']['data'][9]
     state.editable = state.editable.map(() => false)
     // showHistory.value = false
@@ -1067,8 +1073,10 @@ function cancelEditable(index) {
 // 复制内容按钮功能
 const contentRefs = reactive({});
 function copyContent(index) {
-  const textToCopy = contentRefs[`A-${index}`].textContent;
+  // const textToCopy = contentRefs[`A-${index}`].textContent;
+  const textToCopy = QAcontextCopy[index][1]
   navigator.clipboard.writeText(textToCopy)
+  ElMessage.success("复制成功");
 }
 
 const toggleHistory = () => {
@@ -1127,10 +1135,10 @@ function addCodeCopy() {
   // 为每个按钮添加点击事件监听器
   copyButtons.forEach(button => {
     button.addEventListener("click", function () {
-      const textToCopy = this.getAttribute("data-clipboard-text");
+      let textToCopy = this.getAttribute("data-clipboard-text");
       // 将文本复制到剪贴板
       if (textToCopy) {
-        clipboard.writeText(textToCopy);
+        navigator.clipboard.writeText(textToCopy.trim());
         ElMessage.success("复制成功");
       }
     });
