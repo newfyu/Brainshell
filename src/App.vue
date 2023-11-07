@@ -1017,16 +1017,24 @@ onMounted(async () => {
     }
   });
 
+  // 接受主进程发来的export-page消息，导出当前页面的内容。
+  ipcRenderer.on('export-page', () => {
+    const content = QAcontextCopy.map(([question, answer]) => {
+      return `<|User|>:\n ${question}\n\n<|Tianshu|>:\n${answer}\n\n`
+    }).join('\n')
+    const date = new Date();
+    const fileName = `Tiansh-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`
+    ipcRenderer.send('save-export-page', { content, fileName })
+  })
 
   //从localstorage中读取askHotkey的值，如果有，发送到主进程
   const askHotkey = localStorage.getItem('askHotkey');
   if (askHotkey) {
     ipcRenderer.send('setAskHotkey', askHotkey);
   }
-
-  
-
 })
+
+
 
 
 onUnmounted(() => {
@@ -1078,6 +1086,11 @@ function copyContent(index) {
   navigator.clipboard.writeText(textToCopy)
   ElMessage.success("复制成功");
 }
+
+
+
+
+
 
 const toggleHistory = () => {
   showHistory.value = !showHistory.value;
@@ -1199,6 +1212,9 @@ function closeWebDrawer() {
   }
   webDrawer.value = false;
 }
+
+
+
 
 </script>
 

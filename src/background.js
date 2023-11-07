@@ -285,6 +285,7 @@ app.on('ready', async () => {
     // { label: '显示', click: () => win.show() },
     { label: '隐藏', click: () => win.hide() },
     { label: '复位', click: () => win.setBounds({ x: 1000, y: 200, width: 400, height: 800 }) },
+    { label: '导出当前页', click: () => win.webContents.send('export-page') },
     { type: 'separator' },
     { label: '检查更新', click: () => {
       manual_check = true;
@@ -526,6 +527,20 @@ app.on('web-contents-created', (e, webContents) => {
   });
 });
 
+
+//接受渲染进程发来的save-export-page消息，将提供的文件名和内容提示用户打开对话框，选择保存的位置，然后保存。arg.fileName中作为默认的文件名
+ipcMain.on('save-export-page', (event, arg) => {
+  const options = {
+    title: '保存文件',
+    defaultPath: arg.fileName,
+    filters: [{ name: 'Text', extensions: ['txt'] }]
+  };
+  dialog.showSaveDialog(win, options).then(result => {
+    if (!result.canceled) {
+      fs.writeFileSync(result.filePath, arg.content);
+    }
+  });
+});
 
 // 检查后台是否已经有可用的braindoor
 const contactBrainoor = async () => {
