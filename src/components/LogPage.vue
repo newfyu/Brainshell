@@ -13,7 +13,15 @@ let logContent = ref('')
 let logRef = ref(null)
 
 // 根据localStorage中的theme值设置字体颜色
-let textColor = localStorage.getItem('theme') === 'dark' ? '#fff' : '#000'
+let theme = localStorage.getItem('theme')
+let textColor = ''
+if (theme === 'dark') {
+  textColor = '#fff'
+} else if (theme === 'light') {
+  textColor = '#000'
+} else {
+  textColor = '#ff0'
+}
 
 // 每隔3秒读取一次log文件，并且滚动到最底部
 let timer = null
